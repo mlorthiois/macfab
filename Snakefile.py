@@ -1,3 +1,4 @@
+import glob
 # rule mapping
 SOFTWARE=["stringtie", "talon", "flair", "bambu"]
 wildcard_constraints:
@@ -15,7 +16,7 @@ rule all:
 
 rule compact:
     input:
-        config["fastq_path"]
+        lambda files: glob.glob(config["fastq_path"])
     output:
        "compacted.fastq"
     threads:1
