@@ -139,7 +139,7 @@ rule gffcompare:
         ref=lambda wildcards: config["annotation"][wildcards.annot]
     output:
         folder="{software}_{annot}",
-        result="{software}_{annot}".stats
+        result="{software}_{annot}.stats"
     threads:1
     params:
         ram="6G"
