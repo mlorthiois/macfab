@@ -96,7 +96,7 @@ rule flair:
         fa=config["reference_path"],
         fastq="compacted.fastq"
     output:
-        o_prefix="flair_{reference_path}",
+        o_prefix="flair_{annot}",
         o_gtf="flair_{annot}.gtf"
     conda:
         "envs/flair.yaml"
