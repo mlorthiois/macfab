@@ -149,7 +149,7 @@ rule parse_gffcompare:
     threads:1
     params:
         ram="6G"
-    scripts:
+    script:
         "scripts/gfffparse.py"
  
 rule graph:
