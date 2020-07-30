@@ -2,7 +2,7 @@ import glob
 # rule mapping
 SOFTWARE=["stringtie", "talon", "flair", "bambu"]
 wildcard_constraints:
-    annot="[^.]+"
+    annot="[^./]+"
 
 configfile: "config.yaml"
 localrules: all, compact
