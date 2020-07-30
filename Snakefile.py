@@ -93,6 +93,7 @@ rule flair:
     input:
         gtf=lambda wildcards: config["annotation"][wildcards.annot],
         bam="minimap_{annot}_sorted.bam",
+        fa=config["reference_path"],
         fastq="compacted.fastq"
     output:
         o_prefix="flair_{reference_path}",
