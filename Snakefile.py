@@ -2,16 +2,23 @@
 SOFTWARE=["stringtie", "talon", "flair", "bambu"]
 
 configfile: "config.yaml"
+localrules: all, compact
 
 rule all:
     input:
         "Sensitivity_parsed.tsv"
+    threads:1
+    params:
+        ram="6G"
 
 rule compact:
     input:
         config["fastq_path"]
     output:
        "compacted.fastq"
+    threads:1
+    params:
+        ram="6G"
     shell:
         "cat {input} > {output}"
 
@@ -22,6 +29,9 @@ rule gtfToBed12:
         "{annot}_converted.bed12"
     conda:
         "envs/minimap.yaml"
+    threads:1
+    params:
+        ram="6G"
     shell:
         "paftools.js gff2bed {input}"
 
@@ -34,8 +44,11 @@ rule mapping:
         "minimap_{annot}.sam"
     conda:
         "envs/minimap.yaml"
+    threads:10
+    params:
+        ram="20G"
     shell:
-        "minimap2 -ax splice --MD --junc-bed {input.bed} {intput.fa} {input.fastq} > {output}"
+        "minimap2 -t {threads} -ax splice --MD --junc-bed {input.bed} {intput.fa} {input.fastq} > {output}"
         
 rule bam2sam:
     input:
@@ -45,6 +58,8 @@ rule bam2sam:
     conda:
         "envs/samtools.yaml"
     threads:10
+    params:
+        ram="6G"
     shell:
         "samtools view -b -@ {threads} {input} | samtools sort -o {output}"
 
@@ -56,6 +71,9 @@ rule bambu:
     output:
         o_dir=directory("bambu_annot/"),
         o_name="bambu_{annot}.gtf"
+    threads:1
+    params:
+        ram="10G"
     script:
         "scripts/bambu.R"
         
@@ -66,6 +84,8 @@ rule stringtie:
     output:
         "stringtie_{annot}.gtf"
     threads:6
+    params:
+        ram="10G"
     shell:
         config["stringtie"] + "-L -G {input.gtf} -o {output} -p {threads} {input.bam}"
 
@@ -79,6 +99,9 @@ rule flair:
         o_gtf="flair_{annot}.gtf"
     conda:
         "envs/flair.yaml"
+    threads:1
+    params:
+        ram="10G"
     shell:
         "bamToBed -bed12 -i {input.bam} > converted.bed12"
         "flair.py correct -q converted.bed12 -g {input.fa} -f {input.gtf} -o {output.o_prefix}"
@@ -94,6 +117,8 @@ rule talon:
         o_gtf="talon_{annot}.gtf",
         o_prefix="talon_{annot}"
     threads:10
+    params:
+        ram="20G"
     shell:
         "talon_label_reads --f {input.sam} --g {input.fa} --o {output.o_prefix} --t={threads}"
         "talon_initialize_database --f {input.gtf} --g CanFam3 --a {annot} --idprefix {o.prefix} --o {output.o_prefix}"
@@ -109,6 +134,9 @@ rule gffcompare:
         ref=lambda wildcards: config["annotation"][wildcards.annot]
     output:
         "{software}_{annot}"
+    threads:1
+    params:
+        ram="6G"
     shell:
         config["annotation"] + " {input.test} -r {input.ref} -o {output}"
         
@@ -118,6 +146,9 @@ rule parse_gffcompare:
     output:
         Sensitivity:"Sensitivity_parsed.tsv",
         Values:"Values_parsed.tsv"
+    threads:1
+    params:
+        ram="6G"
     scripts:
         "scripts/gfffparse.py"
  
@@ -127,6 +158,8 @@ rule graph:
         Values:"Values_parsed.tsv"
     output:
         "Graph_recap.pdf"
+    threads:1
+    params:
+        ram="6G"
     script:
         "scripts/graph.R"
-
