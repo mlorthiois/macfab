@@ -1,5 +1,7 @@
 # rule mapping
 SOFTWARE=["stringtie", "talon", "flair", "bambu"]
+wildcard_constraints:
+    annot:"[^.]+"
 
 configfile: "config.yaml"
 localrules: all, compact
@@ -133,10 +135,10 @@ rule talon:
         
 rule gffcompare:
     input:
-        test="{software}_{annot,[^.]+}.gtf",
+        test="{software}_{annot}.gtf",
         ref=lambda wildcards: config["annotation"][wildcards.annot]
     output:
-        "{software}_{annot,[^.]+}"
+        "{software}_{annot}"
     threads:1
     params:
         ram="6G"
