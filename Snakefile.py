@@ -133,7 +133,7 @@ rule talon:
         
 rule gffcompare:
     input:
-        test="{software}_{annot}.gtf",
+        test="{software}_{annot,[^.]+}.gtf",
         ref=lambda wildcards: config["annotation"][wildcards.annot]
     output:
         "{software}_{annot,[^.]+}"
