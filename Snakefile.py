@@ -145,8 +145,8 @@ rule parse_gffcompare:
     input:
         expand("{software}_{annot}.stats", software=SOFTWARE, annot=config["annotation"].keys())
     output:
-        Sensitivity:"Sensitivity_parsed.tsv",
-        Values:"Values_parsed.tsv"
+        Sensitivity="Sensitivity_parsed.tsv",
+        Values="Values_parsed.tsv"
     threads:1
     params:
         ram="6G"
@@ -155,8 +155,8 @@ rule parse_gffcompare:
  
 rule graph:
     input:
-        Sensitivity:"Sensitivity_parsed.tsv",
-        Values:"Values_parsed.tsv"
+        Sensitivity="Sensitivity_parsed.tsv",
+        Values="Values_parsed.tsv"
     output:
         "Graph_recap.pdf"
     threads:1
