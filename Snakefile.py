@@ -136,7 +136,7 @@ rule gffcompare:
         test="{software}_{annot}.gtf",
         ref=lambda wildcards: config["annotation"][wildcards.annot]
     output:
-        "{software}_{annot}"
+        "{software}_{annot,[^.]+}"
     threads:1
     params:
         ram="6G"
