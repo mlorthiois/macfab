@@ -1,0 +1,4 @@
+name: flair
+dependencies:
+- flair
+- bedtools

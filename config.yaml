@@ -1,0 +1,7 @@
+annotation: {ens: "ens.txt", custom: "custom.txt"}
+fastq_path: "/groups/dog/data/canFam3/NGS/Melanoma/RNA/MINION/CML10/*/fastq_pass/*.fastq /groups/dog/data/canFam3/NGS/Melanoma/RNA/MINION/CML10/*/fastq_fail/*.fastq"
+reference_path: "/home/genouest/cnrs_umr6290/tderrien/canFam3/sequence/softmasked/Canis_familiaris.CanFam3.1.72.dna_sm.toplevel.fa"
+bed12togtf: "/home/genouest/cnrs_umr6290/tderrien/bin/convert/bed12Togtf.sh"
+cell_line: "CML10"
+stringtie: "/home/genouest/cnrs_umr6290/fsassolas/stringtie-2.1.4.Linux_x86_64/stringtie"
+
