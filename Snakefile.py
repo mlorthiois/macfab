@@ -87,7 +87,7 @@ rule stringtie:
     params:
         ram="10G"
     shell:
-        config["stringtie"] + "-L -G {input.gtf} -o {output} -p {threads} {input.bam}"
+        expand("{var} -L -G {input.gtf} -o {output} -p {threads} {input.bam}", var=config["stringtie"])
 
 rule flair:
     input:
@@ -106,7 +106,7 @@ rule flair:
         "bamToBed -bed12 -i {input.bam} > converted.bed12"
         "flair.py correct -q converted.bed12 -g {input.fa} -f {input.gtf} -o {output.o_prefix}"
         "flair.py collapse -g {input.fa} -r {input.fastq} -q flair_all_corrected.bed -o {output.o_prefix}"
-        config["bed12togtf"] + " flair.collapse.isoforms.bed > {output.o_gtf}"
+        expand("{var} flair.collapse.isoforms.bed > {output.o_gtf}", var=config["bed12togtf"])
         
 rule talon:
     input:
@@ -122,7 +122,7 @@ rule talon:
     shell:
         "talon_label_reads --f {input.sam} --g {input.fa} --o {output.o_prefix} --t={threads}"
         "talon_initialize_database --f {input.gtf} --g CanFam3 --a {annot} --idprefix {o.prefix} --o {output.o_prefix}"
-        "cat" + config["cell_line"] +",Dog_transcript,nanopore,{output.o_prefix}_labelled.sam > talon.config"
+        expand("cat {var},Dog_transcript,nanopore,{output.o_prefix}_labelled.sam > talon.config", var=config["cell_line"])
         "talon --f talon.config --db {output.o_prefix}.db --build CanFam3 -t {threads} --o {threads}"
         "talon_create_GTF --db {output.o_prefix}.db -b CanFam3 -a {annot} --o {output.o_prefix}"
 
@@ -138,7 +138,7 @@ rule gffcompare:
     params:
         ram="6G"
     shell:
-        config["annotation"] + " {input.test} -r {input.ref} -o {output}"
+        expand("{var} {input.test} -r {input.ref} -o {output}", var=config["gffcompare"])
         
 rule parse_gffcompare:
     input:
