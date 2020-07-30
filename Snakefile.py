@@ -103,11 +103,11 @@ rule flair:
     threads:1
     params:
         ram="10G"
-    shell:
+    run:
         shell("bamToBed -bed12 -i {input.bam} > converted.bed12")
         shell("flair.py correct -q converted.bed12 -g {input.fa} -f {input.gtf} -o {output.o_prefix}")
-        shell("flair.py collapse -g {input.fa} -r {input.fastq} -q flair_all_corrected.bed -o {output.o_prefix}")
-        shell(config["bed12togtf"] + " flair.collapse.isoforms.bed > {output.o_gtf}")
+        shell("flair.py collapse -g {input.fa} -r {input.fastq} -q {output.o_prefix}_all_corrected.bed -o {output.o_prefix}")
+        shell(config["bed12togtf"] + " {output.o_prefix}.collapse.isoforms.bed > {output.o_gtf}")
         
 rule talon:
     input:
