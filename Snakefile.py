@@ -69,7 +69,7 @@ rule bambu:
         bam=rules.bam2sam.output,
         fa=config["reference_path"]
     output:
-        o_dir=directory("bambu_annot/"),
+        o_dir=directory("bambu_{annot}"),
         o_name="bambu_{annot}.gtf"
     threads:1
     params:
