@@ -87,7 +87,7 @@ rule stringtie:
     params:
         ram="10G"
     shell:
-        expand("{var} -L -G {input.gtf} -o {output} -p {threads} {input.bam}", var=config["stringtie"])
+        config["stringtie"] + " -L -G {input.gtf} -o {output} -p {threads} {input.bam}"
 
 rule flair:
     input:
@@ -103,10 +103,10 @@ rule flair:
     params:
         ram="10G"
     shell:
-        "bamToBed -bed12 -i {input.bam} > converted.bed12"
-        "flair.py correct -q converted.bed12 -g {input.fa} -f {input.gtf} -o {output.o_prefix}"
-        "flair.py collapse -g {input.fa} -r {input.fastq} -q flair_all_corrected.bed -o {output.o_prefix}"
-        expand("{var} flair.collapse.isoforms.bed > {output.o_gtf}", var=config["bed12togtf"])
+        shell("bamToBed -bed12 -i {input.bam} > converted.bed12")
+        shell("flair.py correct -q converted.bed12 -g {input.fa} -f {input.gtf} -o {output.o_prefix}")
+        shell("flair.py collapse -g {input.fa} -r {input.fastq} -q flair_all_corrected.bed -o {output.o_prefix}")
+        shell(config["bed12togtf"] + " flair.collapse.isoforms.bed > {output.o_gtf}")
         
 rule talon:
     input:
@@ -119,12 +119,12 @@ rule talon:
     threads:10
     params:
         ram="20G"
-    shell:
-        "talon_label_reads --f {input.sam} --g {input.fa} --o {output.o_prefix} --t={threads}"
-        "talon_initialize_database --f {input.gtf} --g CanFam3 --a {annot} --idprefix {o.prefix} --o {output.o_prefix}"
-        expand("cat {var},Dog_transcript,nanopore,{output.o_prefix}_labelled.sam > talon.config", var=config["cell_line"])
-        "talon --f talon.config --db {output.o_prefix}.db --build CanFam3 -t {threads} --o {threads}"
-        "talon_create_GTF --db {output.o_prefix}.db -b CanFam3 -a {annot} --o {output.o_prefix}"
+    run:
+        shell("talon_label_reads --f {input.sam} --g {input.fa} --o {output.o_prefix} --t={threads}")
+        shell("talon_initialize_database --f {input.gtf} --g CanFam3 --a {annot} --idprefix {o.prefix} --o {output.o_prefix}")
+        shell("cat " + config["cell_line"] + ",Dog_transcript,nanopore,{output.o_prefix}_labelled.sam > talon.config")
+        shell("talon --f talon.config --db {output.o_prefix}.db --build CanFam3 -t {threads} --o {threads}")
+        shell("talon_create_GTF --db {output.o_prefix}.db -b CanFam3 -a {annot} --o {output.o_prefix}")
 
 #FIXME add gtf intersect/filtration time
         
@@ -138,7 +138,7 @@ rule gffcompare:
     params:
         ram="6G"
     shell:
-        expand("{var} {input.test} -r {input.ref} -o {output}", var=config["gffcompare"])
+        config["gffcompare"] + " {input.test} -r {input.ref} -o {output}"
         
 rule parse_gffcompare:
     input:
