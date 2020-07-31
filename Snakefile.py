@@ -36,7 +36,7 @@ rule gtfToBed12:
     resources:
         ram="6G"
     shell:
-        config["paftools.js"] + " gff2bed {input}"
+        config["paftools.js"] + " gff2bed {input} > {output}"
 
 rule mapping:
     input:
