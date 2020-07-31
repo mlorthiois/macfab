@@ -9,7 +9,7 @@ localrules: all, compact
 
 rule all:
     input:
-        "Sensitivity_parsed.tsv"
+        "        "Graph.recap.pdf""
     threads:1
     params:
         ram="6G"
@@ -29,7 +29,7 @@ rule gtfToBed12:
     input:
         lambda wildcards: config["annotation"][wildcards.annot]
     output:
-        "{annot}_converted.bed12"
+        "{annot}.converted.bed12"
     conda:
         "envs/minimap.yaml"
     threads:1
@@ -41,10 +41,10 @@ rule gtfToBed12:
 rule mapping:
     input:
         fastq=rules.compact.output,
-        bed="{annot}_converted.bed12",
+        bed="{annot}.converted.bed12",
         fa=config["reference_path"]
     output:
-        "minimap_{annot}.sam"
+        "minimap.{annot}.sam"
     conda:
         "envs/minimap.yaml"
     threads:10
@@ -55,9 +55,9 @@ rule mapping:
         
 rule bam2sam:
     input:
-        "minimap_{annot}.sam"
+        "minimap.{annot}.sam"
     output:
-        "minimap_{annot}_sorted.bam"
+        "minimap.{annot}.sorted.bam"
     conda:
         "envs/samtools.yaml"
     threads:10
@@ -72,8 +72,8 @@ rule bambu:
         bam=rules.bam2sam.output,
         fa=config["reference_path"]
     output:
-        o_dir=directory("bambu_{annot}"),
-        o_name="bambu_{annot}.gtf"
+        o_dir=directory("bambu.{annot}"),
+        o_name="bambu.{annot}.gtf"
     threads:1
     params:
         ram="10G"
@@ -83,9 +83,9 @@ rule bambu:
 rule stringtie:
     input:
         gtf=lambda wildcards: config["annotation"][wildcards.annot],
-        bam="minimap_{annot}_sorted.bam"
+        bam="minimap.{annot}.sorted.bam"
     output:
-        "stringtie_{annot}.gtf"
+        "stringtie.{annot}.gtf"
     threads:6
     params:
         ram="10G"
@@ -95,12 +95,12 @@ rule stringtie:
 rule flair:
     input:
         gtf=lambda wildcards: config["annotation"][wildcards.annot],
-        bam="minimap_{annot}_sorted.bam",
+        bam="minimap.{annot}.sorted.bam",
         fa=config["reference_path"],
         fastq="compacted.fastq"
     output:
-        o_prefix="flair_{annot}",
-        o_gtf="flair_{annot}.gtf"
+        o_prefix="flair.{annot}",
+        o_gtf="flair.{annot}.gtf"
     conda:
         "envs/flair.yaml"
     threads:1
@@ -110,18 +110,18 @@ rule flair:
         """
         bamToBed -bed12 -i {input.bam} > converted.bed12
         flair.py correct -q converted.bed12 -g {input.fa} -f {input.gtf} -o {output.o_prefix}
-        flair.py collapse -g {input.fa} -r {input.fastq} -q {output.o_prefix}_all_corrected.bed -o {output.o_prefix}
+        flair.py collapse -g {input.fa} -r {input.fastq} -q {output.o_prefix}.all.corrected.bed -o {output.o_prefix}
         /home/genouest/cnrs_umr6290/tderrien/bin/convert/bed12Togtf.sh {output.o_prefix}.collapse.isoforms.bed > {output.o_gtf}
         """
         
 rule talon:
     input:
         fa=config["reference_path"],
-        sam="minimap_{annot}.sam",
+        sam="minimap.{annot}.sam",
         gtf=lambda wildcards: config["annotation"][wildcards.annot]
     output:
-        o_gtf="talon_{annot}.gtf",
-        o_prefix="talon_{annot}"
+        o_gtf="talon.{annot}.gtf",
+        o_prefix="talon.{annot}"
     threads:10
     params:
         ram="20G"
@@ -132,15 +132,30 @@ rule talon:
         shell("talon --f talon.config --db {output.o_prefix}.db --build CanFam3 -t {threads} --o {threads}")
         shell("talon_create_GTF --db {output.o_prefix}.db -b CanFam3 -a {annot} --o {output.o_prefix}")
 
-#FIXME add gtf intersect/filtration time
+rule only_seen_exons:
+    input:
+        gtf="{software}.{annot}.gtf",
+        fastq="compacted.fastq"
+        
+    output:
+        final="{software}.{annot}.filtered.gtf",
+        exon=temp("{software}.{annot}.EO.gtf")
+    threads:1
+    params:
+        ram="50G"
+    shell:
+        """
+        grep $'\t'exon$'\t' {input} > {output.exon}
+        bedtools intersect -wa -s -split -a {input.gtf} -b {input.bam} > {output.final}
+        """
         
 rule gffcompare:
     input:
-        test="{software}_{annot}.gtf",
+        test="{software}.{annot}.filtered.gtf",
         ref=lambda wildcards: config["annotation"][wildcards.annot]
     output:
-        folder="{software}_{annot}_stats",
-        result="{software}_{annot}.stats"
+        folder="{software}.{annot}.stats",
+        result="{software}.{annot}.stats"
     threads:1
     params:
         ram="6G"
@@ -149,10 +164,10 @@ rule gffcompare:
         
 rule parse_gffcompare:
     input:
-        expand("{software}_{annot}.stats", software=SOFTWARE, annot=config["annotation"].keys())
+        expand("{software}.{annot}.stats", software=SOFTWARE, annot=config["annotation"].keys())
     output:
-        Sensitivity="Sensitivity_parsed.tsv",
-        Values="Values_parsed.tsv"
+        Sensitivity="Sensitivity.parsed.tsv",
+        Values="Values.parsed.tsv"
     threads:1
     params:
         ram="6G"
@@ -161,10 +176,10 @@ rule parse_gffcompare:
  
 rule graph:
     input:
-        Sensitivity="Sensitivity_parsed.tsv",
-        Values="Values_parsed.tsv"
+        Sensitivity="Sensitivity.parsed.tsv",
+        Values="Values.parsed.tsv"
     output:
-        "Graph_recap.pdf"
+        "Graph.recap.pdf"
     threads:1
     params:
         ram="6G"
