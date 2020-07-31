@@ -34,7 +34,7 @@ rule gtfToBed12:
     conda:
         "envs/minimap.yaml" # defines a conda env to launch the command
     threads:1
-    log: "gtf.log"
+    log: "gtf_{annot}.log"
     resources:
         ram="6G"
     shell:
@@ -50,7 +50,7 @@ rule mapping:
     conda:
         "envs/minimap.yaml"
     threads:10
-    log: "mapping.log"
+    log: "mapping_{annot}.log"
     resources:
         ram="20G"
     shell:
@@ -64,7 +64,7 @@ rule sam2bam:
     conda:
         "envs/samtools.yaml"
     threads:10
-    log: "sam2bam.log"
+    log: "sam2bam_{annot}.log"
     resources:
         ram="6G"
     shell:
@@ -81,7 +81,7 @@ rule bambu:
     conda:
         "envs/r.yaml"
     threads:1
-    log: "bambu.log"
+    log: "bambu_{annot}.log"
     resources:
         ram="10G"
     script:
@@ -96,7 +96,7 @@ rule stringtie:
     threads:6
     resources:
         ram="10G"
-    log: "stringtie.log"
+    log: "stringtie_{annot}.log"
     shell:
         config["stringtie"] + " -L -G {input.gtf} -o {output} -p {threads} {input.bam}"
 
@@ -113,7 +113,7 @@ rule flair:
     threads:1
     resources:
         ram="10G"
-    log: "flair.log"
+    log: "flair_{annot}.log"
     params:
         bed12=config["bed12ToGtf"], # needed to use the value in multi-lines shell command
         prefix="flair.{annot}" # software use prefix but prefix can't be used as output (because no file matching exactly this name will be created)
@@ -135,7 +135,7 @@ rule talon:
     threads:10
     resources:
         ram="20G"
-    log: "talon.log"
+    log: "talon_{annot}.log"
     params:
         cell_line=config["cell_line"],
         prefix="talon.{annot}"
@@ -157,7 +157,7 @@ rule only_seen_exons:
         exon=temp("{software}.{annot}.EO.gtf"),
         sorted_gtf=temp("{software}.{annot}.EO.sorted.gtf")
     threads:1
-    log: "only_seen_exons.log"
+    log: "only_seen_exons_{annot}_{software}.log"
     resources:
         ram="20G"
     shell:
@@ -175,7 +175,7 @@ rule gffcompare:
         folder=directory("{software}.{annot}.folder"),
         result="{software}.{annot}.stats"
     threads:1
-    log: "gffcompare.log"
+    log: "gffcompare_{annot}_{software}.log"
     resources:
         ram="6G"
     shell:
@@ -188,7 +188,7 @@ rule parse_gffcompare:
         Sensitivity="Sensitivity.parsed.tsv",
         Values="Values.parsed.tsv"
     threads:1
-    log: "parse_gffcompare.log"
+    log: "parse_gffcompare_{annot}_{software}.log"
     resources:
         ram="6G"
     script:
