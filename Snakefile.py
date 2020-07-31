@@ -110,8 +110,8 @@ rule flair:
         """
         bamToBed -bed12 -i {input.bam} > converted.bed12
         flair.py correct -q converted.bed12 -g {input.fa} -f {input.gtf} -o {output.o_prefix}
-        flair.py collapse -g {input.fa} -r {input.fastq} -q {output.o_prefix}.all.corrected.bed -o {output.o_prefix}
-        /home/genouest/cnrs_umr6290/tderrien/bin/convert/bed12Togtf.sh {output.o_prefix}.collapse.isoforms.bed > {output.o_gtf}
+        flair.py collapse -g {input.fa} -r {input.fastq} -q {output.o_prefix}_all_corrected.bed -o {output.o_prefix}
+        ~tderrien/bin/convert/bed12Togtf.sh {output.o_prefix}.collapse.isoforms.bed > {output.o_gtf}
         """
         
 rule talon:
@@ -126,11 +126,12 @@ rule talon:
     resources:
         ram="20G"
     run:
+        annot=wildcards.annot
         shell("talon_label_reads --f {input.sam} --g {input.fa} --o {output.o_prefix} --t={threads}")
-        shell("talon_initialize_database --f {input.gtf} --g CanFam3 --a {annot} --idprefix {o.prefix} --o {output.o_prefix}")
+        shell("talon_initialize_database --f {input.gtf} --g CanFam3 --a " + annot + " --idprefix {o.prefix} --o {output.o_prefix}")
         shell("cat " + config["cell_line"] + ",Dog_transcript,nanopore,{output.o_prefix}_labelled.sam > talon.config")
         shell("talon --f talon.config --db {output.o_prefix}.db --build CanFam3 -t {threads} --o {threads}")
-        shell("talon_create_GTF --db {output.o_prefix}.db -b CanFam3 -a {annot} --o {output.o_prefix}")
+        shell("talon_create_GTF --db {output.o_prefix}.db -b CanFam3 -a " + annot + " --o {output.o_prefix}")
 
 rule only_seen_exons:
     input:
