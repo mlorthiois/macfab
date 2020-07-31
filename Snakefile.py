@@ -34,6 +34,7 @@ rule gtfToBed12:
     conda:
         "envs/minimap.yaml" # defines a conda env to launch the command
     threads:1
+    log: "gtf.log"
     resources:
         ram="6G"
     shell:
@@ -49,6 +50,7 @@ rule mapping:
     conda:
         "envs/minimap.yaml"
     threads:10
+    log: "mapping.log"
     resources:
         ram="20G"
     shell:
@@ -62,6 +64,7 @@ rule sam2bam:
     conda:
         "envs/samtools.yaml"
     threads:10
+    log: "sam2bam.log"
     resources:
         ram="6G"
     shell:
@@ -78,6 +81,7 @@ rule bambu:
     conda:
         "envs/r.yaml"
     threads:1
+    log: "bambu.log"
     resources:
         ram="10G"
     script:
@@ -92,6 +96,7 @@ rule stringtie:
     threads:6
     resources:
         ram="10G"
+    log: "stringtie.log"
     shell:
         config["stringtie"] + " -L -G {input.gtf} -o {output} -p {threads} {input.bam}"
 
@@ -108,6 +113,7 @@ rule flair:
     threads:1
     resources:
         ram="10G"
+    log: "flair.log"
     params:
         bed12=config["bed12ToGtf"], # needed to use the value in multi-lines shell command
         prefix="flair.{annot}" # software use prefix but prefix can't be used as output (because no file matching exactly this name will be created)
@@ -116,7 +122,7 @@ rule flair:
         bamToBed -bed12 -i {input.bam} > converted.bed12
         flair.py correct -q converted.bed12 -g {input.fa} -f {input.gtf} -o {params.prefix}
         flair.py collapse -g {input.fa} -r {input.fastq} -q {params.prefix}_all_corrected.bed -o {params.prefix}
-        {params.bed12} {params.prefix}.collapse.isoforms.bed > {output}
+        {params.bed12} {params.prefix}.isoforms.bed > {output}
         """
         
 rule talon:
@@ -129,12 +135,13 @@ rule talon:
     threads:10
     resources:
         ram="20G"
+    log: "talon.log"
     params:
         cell_line=config["cell_line"],
         prefix="talon.{annot}"
     run:
         """
-        talon_label_reads --f {input.sam} --g {input.fa} --o {params.prefix} --t={threads}
+        talon_label_reads --deleteTmp --f {input.sam} --g {input.fa} --o {params.prefix} --t={threads}
         talon_initialize_database --f {input.gtf} --g CanFam3 --a {annot} --idprefix {params.prefix} --o {params.prefix}
         cat {params.cell_line},Dog_transcript,nanopore,{params.prefix}_labelled.sam > talon.config
         talon --f talon.config --db {params.prefix}.db --build CanFam3 -t {threads} --o {threads}
@@ -150,6 +157,7 @@ rule only_seen_exons:
         exon=temp("{software}.{annot}.EO.gtf"),
         sorted_gtf=temp("{software}.{annot}.EO.sorted.gtf")
     threads:1
+    log: "only_seen_exons.log"
     resources:
         ram="20G"
     shell:
@@ -167,6 +175,7 @@ rule gffcompare:
         folder=directory("{software}.{annot}.folder"),
         result="{software}.{annot}.stats"
     threads:1
+    log: "gffcompare.log"
     resources:
         ram="6G"
     shell:
@@ -179,6 +188,7 @@ rule parse_gffcompare:
         Sensitivity="Sensitivity.parsed.tsv",
         Values="Values.parsed.tsv"
     threads:1
+    log: "parse_gffcompare.log"
     resources:
         ram="6G"
     script:
@@ -190,6 +200,7 @@ rule graph:
         Values="Values.parsed.tsv"
     output:
         "Graph.recap.pdf"
+    log: "graph.log"
     threads:1
     resources:
         ram="6G"
