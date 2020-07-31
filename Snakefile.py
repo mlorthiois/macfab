@@ -9,9 +9,9 @@ localrules: all, compact
 
 rule all:
     input:
-        "        "Graph.recap.pdf""
+        "Graph.recap.pdf"
     threads:1
-    params:
+    resources:
         ram="6G"
 
 rule compact:
@@ -20,7 +20,7 @@ rule compact:
     output:
        "compacted.fastq"
     threads:1
-    params:
+    resources:
         ram="6G"
     shell:
         "cat {input} > {output}"
@@ -33,7 +33,7 @@ rule gtfToBed12:
     conda:
         "envs/minimap.yaml"
     threads:1
-    params:
+    resources:
         ram="6G"
     shell:
         "paftools.js gff2bed {input}"
@@ -48,7 +48,7 @@ rule mapping:
     conda:
         "envs/minimap.yaml"
     threads:10
-    params:
+    resources:
         ram="20G"
     shell:
         "minimap2 -t {threads} -ax splice --MD --junc-bed {input.bed} {intput.fa} {input.fastq} > {output}"
@@ -61,7 +61,7 @@ rule bam2sam:
     conda:
         "envs/samtools.yaml"
     threads:10
-    params:
+    resources:
         ram="6G"
     shell:
         "samtools view -b -@ {threads} {input} | samtools sort -o {output}"
@@ -75,7 +75,7 @@ rule bambu:
         o_dir=directory("bambu.{annot}"),
         o_name="bambu.{annot}.gtf"
     threads:1
-    params:
+    resources:
         ram="10G"
     script:
         "scripts/bambu.R"
@@ -87,7 +87,7 @@ rule stringtie:
     output:
         "stringtie.{annot}.gtf"
     threads:6
-    params:
+    resources:
         ram="10G"
     shell:
         config["stringtie"] + " -L -G {input.gtf} -o {output} -p {threads} {input.bam}"
@@ -104,7 +104,7 @@ rule flair:
     conda:
         "envs/flair.yaml"
     threads:1
-    params:
+    resources:
         ram="10G"
     shell:
         """
@@ -123,7 +123,7 @@ rule talon:
         o_gtf="talon.{annot}.gtf",
         o_prefix="talon.{annot}"
     threads:10
-    params:
+    resources:
         ram="20G"
     run:
         shell("talon_label_reads --f {input.sam} --g {input.fa} --o {output.o_prefix} --t={threads}")
@@ -141,7 +141,7 @@ rule only_seen_exons:
         final="{software}.{annot}.filtered.gtf",
         exon=temp("{software}.{annot}.EO.gtf")
     threads:1
-    params:
+    resources:
         ram="50G"
     shell:
         """
@@ -157,7 +157,7 @@ rule gffcompare:
         folder="{software}.{annot}.stats",
         result="{software}.{annot}.stats"
     threads:1
-    params:
+    resources:
         ram="6G"
     shell:
         config["gffcompare"] + " {input.test} -r {input.ref} -o {output.folder}"
@@ -169,7 +169,7 @@ rule parse_gffcompare:
         Sensitivity="Sensitivity.parsed.tsv",
         Values="Values.parsed.tsv"
     threads:1
-    params:
+    resources:
         ram="6G"
     script:
         "scripts/gfffparse.py"
@@ -181,7 +181,7 @@ rule graph:
     output:
         "Graph.recap.pdf"
     threads:1
-    params:
+    resources:
         ram="6G"
     script:
         "scripts/graph.R"
