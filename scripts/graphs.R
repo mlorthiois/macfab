@@ -1,5 +1,5 @@
 if (!requireNamespace("ggplot2", quietly = TRUE))
-	install.packages("ggplot2")
+	install.packages("ggplot2", repos="cran.univ-lyon1.fr")
 
 library(ggplot2)
 

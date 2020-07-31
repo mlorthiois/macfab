@@ -1,18 +1,18 @@
 import glob
 
 # rule mapping
-SOFTWARE=["stringtie", "talon", "flair", "bambu"]
+SOFTWARE=["stringtie", "talon", "flair", "bambu"] # NEVER add annotating rules without adding software here
 wildcard_constraints:
-    annot="[^./]+"
+    annot="[^./]+" # forbid wildcard "annot" to contain "/" or "." in order to ensure proper assignation
 
-configfile: "config.yaml"
-localrules: all, compact
+configfile: "config.yaml" # path to the config file
+localrules: all, compact # never launch the all and the compact rules on the cluster
 
-rule all:
+rule all: # a simple rule to launch the full pipeline without specifiying the final rule (graph)
     input:
         "Graph.recap.pdf"
     threads:1
-    resources:
+    resources: # is used by snakemake as input for the sbatch command
         ram="6G"
 
 rule compact:
@@ -32,7 +32,7 @@ rule gtfToBed12:
     output:
         "{annot}.converted.bed12"
     conda:
-        "envs/minimap.yaml"
+        "envs/minimap.yaml" # defines a conda env to launch the command
     threads:1
     resources:
         ram="6G"
@@ -102,21 +102,21 @@ rule flair:
         fa=config["reference_path"],
         fastq="compacted.fastq"
     output:
-        o_prefix="flair.{annot}",
-        o_gtf="flair.{annot}.gtf"
+        "flair.{annot}.gtf"
     conda:
         "envs/flair.yaml"
     threads:1
     resources:
         ram="10G"
     params:
-        bed12=config["bed12ToGtf"]    
+        bed12=config["bed12ToGtf"] # needed to use the value in multi-lines shell command
+        prefix="flair.{annot}" # software use prefix but prefix can't be used as output (because no file matching exactly this name will be created)
     shell:
         """
         bamToBed -bed12 -i {input.bam} > converted.bed12
-        flair.py correct -q converted.bed12 -g {input.fa} -f {input.gtf} -o {output.o_prefix}
-        flair.py collapse -g {input.fa} -r {input.fastq} -q {output.o_prefix}_all_corrected.bed -o {output.o_prefix}
-        {params.bed12} {output.o_prefix}.collapse.isoforms.bed > {output.o_gtf}
+        flair.py correct -q converted.bed12 -g {input.fa} -f {input.gtf} -o {params.prefix}
+        flair.py collapse -g {input.fa} -r {input.fastq} -q {params.prefix}_all_corrected.bed -o {params.prefix}
+        {params.bed12} {params.prefix}.collapse.isoforms.bed > {output}
         """
         
 rule talon:
@@ -125,20 +125,20 @@ rule talon:
         sam="minimap.{annot}.sam",
         gtf=lambda wildcards: config["annotation"][wildcards.annot]
     output:
-        o_gtf="talon.{annot}.gtf",
-        o_prefix="talon.{annot}"
+        "talon.{annot}.gtf"
     threads:10
     resources:
         ram="20G"
     params:
         cell_line=config["cell_line"]
+        prefix="talon.{annot}"
     run:
         """
-        talon_label_reads --f {input.sam} --g {input.fa} --o {output.o_prefix} --t={threads}
-        talon_initialize_database --f {input.gtf} --g CanFam3 --a {annot} --idprefix {o.prefix} --o {output.o_prefix}
-        cat {params.cell_line},Dog_transcript,nanopore,{output.o_prefix}_labelled.sam > talon.config
-        talon --f talon.config --db {output.o_prefix}.db --build CanFam3 -t {threads} --o {threads}
-        talon_create_GTF --db {output.o_prefix}.db -b CanFam3 -a {annot} --o {output.o_prefix}
+        talon_label_reads --f {input.sam} --g {input.fa} --o {params.prefix} --t={threads}
+        talon_initialize_database --f {input.gtf} --g CanFam3 --a {annot} --idprefix {params.prefix} --o {params.prefix}
+        cat {params.cell_line},Dog_transcript,nanopore,{params.prefix}_labelled.sam > talon.config
+        talon --f talon.config --db {params.prefix}.db --build CanFam3 -t {threads} --o {threads}
+        talon_create_GTF --db {params.prefix}.db -b CanFam3 -a {annot} --o {output}
         """
         
 rule only_seen_exons:

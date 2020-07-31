@@ -1,9 +1,9 @@
 if (!requireNamespace("devtools", quietly = TRUE))
-	install.packages("devtools")
+	install.packages("devtools", repos="cran.univ-lyon1.fr")
 devtools::install_github("GoekeLab/bambu")
 
 if (!requireNamespace("BiocManager", quietly = TRUE))
-	install.packages("BiocManager")
+	install.packages("BiocManager", repos="cran.univ-lyon1.fr")
 BiocManager::install("BSgenome")
 
 library(bambu)
@@ -18,5 +18,3 @@ bambuAnnotations <- prepareAnnotationsFromGTF(gtf.file)
 se <- bambu(reads = test.bam, annotations = bambuAnnotations, genomeSequence = fa.file)
 writeBambuOutput(se, path = snakemake@output[["o_dir"]])
 file.rename(paste(snakemake@input[[0]], "transcript_exon.gtf", sep=""), paste(snakemake@input[[0]], snakemake@output[["o_name"]], sep=""))
-
-install.packages("ggplot2")
