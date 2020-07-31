@@ -188,7 +188,7 @@ rule parse_gffcompare:
         Sensitivity="Sensitivity.parsed.tsv",
         Values="Values.parsed.tsv"
     threads:1
-    log: "parse_gffcompare_{annot}_{software}.log"
+    log: "parse_gffcompare.log"
     resources:
         ram="6G"
     script:
