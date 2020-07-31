@@ -2,3 +2,4 @@ name: flair
 dependencies:
 - flair
 - bedtools
+- samtools=1.6
