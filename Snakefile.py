@@ -109,7 +109,7 @@ rule flair:
     resources:
         ram="10G"
     params:
-        bed12=config["bed12ToGtf"] # needed to use the value in multi-lines shell command
+        bed12=config["bed12ToGtf"], # needed to use the value in multi-lines shell command
         prefix="flair.{annot}" # software use prefix but prefix can't be used as output (because no file matching exactly this name will be created)
     shell:
         """
