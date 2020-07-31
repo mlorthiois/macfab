@@ -36,7 +36,7 @@ rule gtfToBed12:
     resources:
         ram="6G"
     shell:
-        "paftools.js gff2bed {input}"
+        config["paftools.js"] + " gff2bed {input}"
 
 rule mapping:
     input:
@@ -53,7 +53,7 @@ rule mapping:
     shell:
         "minimap2 -t {threads} -ax splice --MD --junc-bed {input.bed} {intput.fa} {input.fastq} > {output}"
         
-rule bam2sam:
+rule sam2bam:
     input:
         "minimap.{annot}.sam"
     output:

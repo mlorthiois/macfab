@@ -5,3 +5,4 @@ reference_path: "/home/genouest/cnrs_umr6290/tderrien/canFam3/sequence/softmaske
 cell_line: "CML10"
 stringtie: "/home/genouest/cnrs_umr6290/fsassolas/stringtie-2.1.4.Linux_x86_64/stringtie"
 gffcompare: "/home/genouest/cnrs_umr6290/fsassolas/gffcompare-0.11.6.Linux_x86_64/gffcompare"
+paftools.js: "~/paftools.js" # fix to avoid issues with the default paftools which doesnt work
