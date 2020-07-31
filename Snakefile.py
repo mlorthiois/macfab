@@ -140,14 +140,16 @@ rule only_seen_exons:
         
     output:
         final="{software}.{annot}.filtered.gtf",
-        exon=temp("{software}.{annot}.EO.gtf")
+        exon=temp("{software}.{annot}.EO.gtf"),
+        sorted_gtf=temp("{software}.{annot}.EO.sorted.gtf")
     threads:1
     resources:
-        ram="50G"
+        ram="20G"
     shell:
         """
         grep $'\t'exon$'\t' {input} > {output.exon}
-        bedtools intersect -wa -s -split -a {input.gtf} -b {input.bam} > {output.final}
+        sort -k1,1 -k4,4 {output.exon} > {output.sorted_gtf}
+        bedtools intersect -sorted -wa -s -split -a {output.sorted_gtf} -b {input.bam} > {output.final}
         """
         
 rule gffcompare:
