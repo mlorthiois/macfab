@@ -51,7 +51,7 @@ rule mapping:
     resources:
         ram="20G"
     shell:
-        "minimap2 -t {threads} -ax splice --MD --junc-bed {input.bed} {intput.fa} {input.fastq} > {output}"
+        "minimap2 -t {threads} -ax splice --MD --junc-bed {input.bed} {input.fa} {input.fastq} > {output}"
         
 rule sam2bam:
     input:
