@@ -1,5 +1,5 @@
 annotation: {ens: "/groups/dog/data/canFam3/annotation/Ensembl99/Canis_familiaris.CanFam3.1.99.gtf", custom: "/groups/dog/data/canFam3/annotation/canfam3.2/canfam3_cons_annot_TritouPuppetMasterChief_23-03-2016_lncClasse_geneBiotype_withEnsCds_withSilicoCds_withGoodGeneSource.gtf"}
-fastq_path: "/home/genouest/cnrs_umr6290/fsassolas/Data/snakemake_test/Data" 
+fastq_path: "/home/genouest/cnrs_umr6290/fsassolas/Data/snakemake_test/Data/*/*.fastq" 
 #"/groups/dog/data/canFam3/NGS/Melanoma/RNA/MINION/CML10/*/fastq_pass/*.fastq /groups/dog/data/canFam3/NGS/Melanoma/RNA/MINION/CML10/*/fastq_fail/*.fastq"
 reference_path: "/home/genouest/cnrs_umr6290/tderrien/canFam3/sequence/softmasked/Canis_familiaris.CanFam3.1.72.dna_sm.toplevel.fa"
 cell_line: "CML10"
