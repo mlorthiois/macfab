@@ -154,7 +154,7 @@ rule gffcompare:
         test="{software}.{annot}.filtered.gtf",
         ref=lambda wildcards: config["annotation"][wildcards.annot]
     output:
-        folder="{software}.{annot}.stats",
+        folder="{software}.{annot}.folder",
         result="{software}.{annot}.stats"
     threads:1
     resources:
