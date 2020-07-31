@@ -69,7 +69,7 @@ rule sam2bam:
 rule bambu:
     input:
         gtf=lambda wildcards: config["annotation"][wildcards.annot],
-        bam=rules.bam2sam.output,
+        bam="minimap.{annot}.sorted.bam",
         fa=config["reference_path"]
     output:
         o_dir=directory("bambu.{annot}"),
