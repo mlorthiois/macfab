@@ -144,7 +144,7 @@ rule talon:
         """
         talon_label_reads --deleteTmp --f {input.sam} --g {input.fa} --o {params.prefix} --t={threads}
         talon_initialize_database --f {input.gtf} --g CanFam3 --a {params.used_annot} --idprefix {params.prefix} --o {params.prefix}
-        cat {params.cell_line},Dog_transcript,nanopore,{params.prefix}_labelled.sam > talon.config
+        echo {params.cell_line},Dog_transcript,nanopore,{params.prefix}_labelled.sam > talon.config
         talon --f talon.config --db {params.prefix}.db --build CanFam3 -t {threads} --o {threads}
         talon_create_GTF --db {params.prefix}.db -b CanFam3 -a {params.used_annot} --o {output}
         """
