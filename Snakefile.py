@@ -141,6 +141,7 @@ rule talon:
         prefix="talon.{annot}"
     run:
         """
+        echo relou | cat > test.txt
         talon_label_reads --deleteTmp --f {input.sam} --g {input.fa} --o {params.prefix} --t={threads} &&
         talon_initialize_database --f {input.gtf} --g CanFam3 --a {annot} --idprefix {params.prefix} --o {params.prefix} &&
         cat {params.cell_line},Dog_transcript,nanopore,{params.prefix}_labelled.sam > talon.config &&
