@@ -141,10 +141,10 @@ rule talon:
         prefix="talon.{annot}"
     run:
         """
-        talon_label_reads --deleteTmp --f {input.sam} --g {input.fa} --o {params.prefix} --t={threads}
-        talon_initialize_database --f {input.gtf} --g CanFam3 --a {annot} --idprefix {params.prefix} --o {params.prefix}
-        cat {params.cell_line},Dog_transcript,nanopore,{params.prefix}_labelled.sam > talon.config
-        talon --f talon.config --db {params.prefix}.db --build CanFam3 -t {threads} --o {threads}
+        talon_label_reads --deleteTmp --f {input.sam} --g {input.fa} --o {params.prefix} --t={threads} &&
+        talon_initialize_database --f {input.gtf} --g CanFam3 --a {annot} --idprefix {params.prefix} --o {params.prefix} &&
+        cat {params.cell_line},Dog_transcript,nanopore,{params.prefix}_labelled.sam > talon.config &&
+        talon --f talon.config --db {params.prefix}.db --build CanFam3 -t {threads} --o {threads} &&
         talon_create_GTF --db {params.prefix}.db -b CanFam3 -a {annot} --o {output}
         """
         
@@ -163,8 +163,8 @@ rule only_seen_exons:
         ram="20G"
     shell:
         """
-        grep $'\t'exon$'\t' {input} > {output.exon}
-        sort -k1,1 -k4,4 {output.exon} > {output.sorted_gtf}
+        grep $'\t'exon$'\t' {input} > {output.exon} &&
+        sort -k1,1 -k4,4 {output.exon} > {output.sorted_gtf} &&
         bedtools intersect -sorted -wa -s -split -a {output.sorted_gtf} -b {input.bam} > {output.final}
         """
         
