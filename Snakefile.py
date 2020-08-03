@@ -138,14 +138,15 @@ rule talon:
     log: "talon_{annot}.log"
     params:
         cell_line=config["cell_line"],
-        prefix="talon.{annot}"
+        prefix="talon.{annot}",
+        used_annot="{annot}"
     shell:
         """
         talon_label_reads --deleteTmp --f {input.sam} --g {input.fa} --o {params.prefix} --t={threads}
-        talon_initialize_database --f {input.gtf} --g CanFam3 --a {annot} --idprefix {params.prefix} --o {params.prefix}
+        talon_initialize_database --f {input.gtf} --g CanFam3 --a {params.used_annot} --idprefix {params.prefix} --o {params.prefix}
         cat {params.cell_line},Dog_transcript,nanopore,{params.prefix}_labelled.sam > talon.config
         talon --f talon.config --db {params.prefix}.db --build CanFam3 -t {threads} --o {threads}
-        talon_create_GTF --db {params.prefix}.db -b CanFam3 -a {annot} --o {output}
+        talon_create_GTF --db {params.prefix}.db -b CanFam3 -a {params.used_annot} --o {output}
         """
         
 rule only_seen_exons:
