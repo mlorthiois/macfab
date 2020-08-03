@@ -151,7 +151,8 @@ rule talon:
 rule only_seen_exons:
     input:
         gtf="{software}.{annot}.gtf",
-        fastq="compacted.fastq"
+        fastq="compacted.fastq",
+        bam="minimap.{annot}.sorted.bam"
     output:
         final="{software}.{annot}.filtered.gtf",
         exon=temp("{software}.{annot}.EO.gtf"),
