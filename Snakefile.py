@@ -10,7 +10,8 @@ localrules: all, compact # never launch the all and the compact rules on the clu
 
 rule all: # a simple rule to launch the full pipeline without specifiying the final rule (graph)
     input:
-        "Graph.recap.pdf"
+        results="Graph.recap.pdf",
+        config_done=".config_done"
     threads:1
     resources: # is used by snakemake as input for the sbatch command
         ram="6G"
