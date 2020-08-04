@@ -166,6 +166,8 @@ rule only_seen_exons:
         sorted_gtf=temp("{software}.{annot}.EO.sorted.gtf")
     threads:1
     log: "only_seen_exons_{annot}_{software}.log"
+    conda:
+        envs/bedtools.yaml
     resources:
         ram="20G"
     shell:
