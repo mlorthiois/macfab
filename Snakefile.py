@@ -144,7 +144,8 @@ rule talon:
         #FIXME ensure that the database isn't created twice
         """
         talon_label_reads --deleteTmp --f {input.sam} --g {input.fa} --o {params.prefix} --t={threads}
-        if [ -f "{params.prefix}.db" ] ; then
+        echo check db existence
+        if [ -f "{params.prefix}.db" ]; then
         echo {params.prefix}.db
         rm "{params.prefix}.db"
         fi
