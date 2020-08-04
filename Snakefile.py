@@ -132,6 +132,8 @@ rule talon:
         gtf=lambda wildcards: config["annotation"][wildcards.annot]
     output:
         "talon.{annot}.gtf"
+    conda:
+        "envs/talon.yaml"
     threads:10
     resources:
         ram="20G"
