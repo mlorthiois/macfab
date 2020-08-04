@@ -175,7 +175,7 @@ rule only_seen_exons:
     threads:1
     log: "only_seen_exons_{annot}_{software}.log"
     conda:
-        envs/bedtools.yaml
+        "envs/bedtools.yaml"
     resources:
         ram="20G"
     shell:
