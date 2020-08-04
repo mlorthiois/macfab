@@ -144,7 +144,7 @@ rule talon:
         #FIXME ensure that the database isn't created twice
         """
         talon_label_reads --deleteTmp --f {input.sam} --g {input.fa} --o {params.prefix} --t={threads}
-        if test -f {params.prefix}.db ; then:
+        if [ -f {params.prefix}.db ] ; then
         rm {params.prefix}.db
         fi
         talon_initialize_database --f {input.gtf} --g CanFam3 --a {params.used_annot} --idprefix {params.prefix} --o {params.prefix}
