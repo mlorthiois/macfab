@@ -6,12 +6,11 @@ wildcard_constraints:
     annot="[^./]+" # forbid wildcard "annot" to contain "/" or "." in order to ensure proper assignation
 
 configfile: "config.yaml" # path to the config file
-localrules: all, compact # never launch the all and the compact rules on the cluster
+localrules: all, compact, config # never launch the all and the compact rules on the cluster
 
 rule all: # a simple rule to launch the full pipeline without specifiying the final rule (graph)
     input:
-        results="Graph.recap.pdf",
-        config_done=".config_done"
+        results="Graph.recap.pdf"
     threads:1
     resources: # is used by snakemake as input for the sbatch command
         ram="6G"
@@ -82,7 +81,8 @@ rule bambu:
     input:
         gtf=lambda wildcards: config["annotation"][wildcards.annot],
         bam="minimap.{annot}.sorted.bam",
-        fa=config["reference_path"]
+        fa=config["reference_path"],
+        config_done=".config_done"
     output:
         o_dir=directory("bambu.{annot}"),
         o_name="bambu.{annot}.gtf"
