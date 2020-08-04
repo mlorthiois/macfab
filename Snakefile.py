@@ -15,6 +15,13 @@ rule all: # a simple rule to launch the full pipeline without specifiying the fi
     resources: # is used by snakemake as input for the sbatch command
         ram="6G"
 
+rule config:
+    output: touch(".config_done")
+    conda:
+        "envs/r.yaml"
+    script:
+        "scripts/install.R"
+
 rule compact:
     input:
         lambda files: glob.glob(config["fastq_path"])

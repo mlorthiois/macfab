@@ -1,13 +1,5 @@
-if (!requireNamespace("devtools", quietly = TRUE))
-	install.packages("devtools", repos="cran.univ-lyon1.fr")
-devtools::install_github("GoekeLab/bambu")
-
-if (!requireNamespace("BiocManager", quietly = TRUE))
-	install.packages("BiocManager", repos="cran.univ-lyon1.fr")
-BiocManager::install("BSgenome")
-
 library(bambu)
-library("BSgenome")
+library(BSgenome)
 
 gtf.file <- snakemake@input[["gtf"]]
 test.bam <- snakemake@input[["bam"]]
