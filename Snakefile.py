@@ -201,6 +201,7 @@ rule gffcompare:
     output:
         result="{software}.{annot}.stats"
     threads:1
+    shadow: "shallow"
     log: "gffcompare_{annot}_{software}.log"
     params:
         prefix="{software}_{annot}",
