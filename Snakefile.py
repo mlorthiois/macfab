@@ -27,7 +27,7 @@ rule configShell:
     params:
         talon=config["TALON_url"]
     run:
-        shell("wget " + {params.talon})
+        shell("wget {params.talon}")
         shell("tar -xzf v*.tar.gz")
         shell("cd TALON*")
         shell("pip install .")
