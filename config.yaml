@@ -7,3 +7,4 @@ stringtie: "/home/genouest/cnrs_umr6290/fsassolas/stringtie-2.1.4.Linux_x86_64/s
 gffcompare: "/home/genouest/cnrs_umr6290/fsassolas/gffcompare-0.11.6.Linux_x86_64/gffcompare"
 paftools.js: "/home/genouest/cnrs_umr6290/fsassolas/paftools_test.js" # fix to avoid issues with the default paftools which doesnt work
 bed12ToGtf: "~tderrien/bin/convert/bed12Togtf.sh"
+TALON_url: https://github.com/mortazavilab/TALON/archive/v5.0.tar.gz

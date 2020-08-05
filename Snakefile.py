@@ -15,12 +15,22 @@ rule all: # a simple rule to launch the full pipeline without specifiying the fi
     resources: # is used by snakemake as input for the sbatch command
         ram="6G"
 
-rule config:
-    output: touch(".config_done")
+rule configR:
+    output: touch(".R_config")
     conda:
         "envs/r.yaml"
     script:
         "scripts/install.R"
+        
+rule configShell:
+    output: touch(".shell_config")
+    params:
+        talon=config["TALON_url"]
+    run:
+        shell("wget " + talon)
+        shell("tar -xzf v*.tar.gz")
+        shell("cd TALON*")
+        shell("pip install .")
 
 rule compact:
     input:
@@ -82,7 +92,7 @@ rule bambu:
         gtf=lambda wildcards: config["annotation"][wildcards.annot],
         bam="minimap.{annot}.sorted.bam",
         fa=config["reference_path"],
-        config_done=".config_done"
+        isConfig=".R_config"
     output:
         o_dir=directory("bambu.{annot}"),
         o_name="bambu.{annot}.gtf"
@@ -137,7 +147,8 @@ rule talon:
     input:
         fa=config["reference_path"],
         sam="minimap.{annot}.sam",
-        gtf=lambda wildcards: config["annotation"][wildcards.annot]
+        gtf=lambda wildcards: config["annotation"][wildcards.annot],
+        isConfig=".shell_config"
     output:
         "talon.{annot}.gtf"
     conda:
@@ -151,7 +162,6 @@ rule talon:
         prefix="talon.{annot}",
         used_annot="{annot}"
     shell:
-        #FIXME ensure that the database isn't created twice
         """
         talon_label_reads --deleteTmp --f {input.sam} --g {input.fa} --o {params.prefix} --t={threads}
         if [ -f "{params.prefix}.db" ]; then
