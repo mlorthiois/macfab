@@ -30,8 +30,7 @@ rule configShell:
     run:
         shell("wget https://github.com/mortazavilab/TALON/archive/v5.0.tar.gz")
         shell("tar -xzf {output.tar}")
-        shell("cd {output.install}")
-        shell("pip install .")
+        shell("cd {output.install} && pip install .")
 
 rule compact:
     input:
