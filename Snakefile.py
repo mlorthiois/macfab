@@ -181,8 +181,7 @@ rule only_seen_exons:
         bam="minimap.{annot}.sorted.bam"
     output:
         final="{software}.{annot}.filtered.gtf",
-        exon=temp("{software}.{annot}.EO.gtf"),
-        sorted_gtf=temp("{software}.{annot}.EO.sorted.gtf")
+        exon=temp("{software}.{annot}.EO.gtf")
     threads:1
     log: "only_seen_exons_{annot}_{software}.log"
     conda:
@@ -192,7 +191,7 @@ rule only_seen_exons:
     shell:
         """
         grep $'\t'exon$'\t' {input.gtf} > {output.exon}
-        bedtools intersect -wa -s -split -a {output.sorted_gtf} -b {input.bam} > {output.final}
+        bedtools intersect -wa -s -split -a {output.exon} -b {input.bam} > {output.final}
         """
         
 rule gffcompare:
