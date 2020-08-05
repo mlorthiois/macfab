@@ -28,7 +28,7 @@ rule configShell:
         check=touch(".shell_config")
     run:
         shell("wget https://github.com/mortazavilab/TALON/archive/v5.0.tar.gz")
-        shell("tar -xzf v.5.0.tar.gz")
+        shell("tar -xzf v5.0.tar.gz")
         shell("cd TALON-5.0 && pip install .")
 
 rule compact:
