@@ -127,6 +127,7 @@ rule flair:
         "flair.{annot}.gtf"
     conda:
         "envs/flair.yaml"
+    shadow: "shallow"
     threads:1
     resources:
         ram="10G"
@@ -187,12 +188,11 @@ rule only_seen_exons:
     conda:
         "envs/bedtools.yaml"
     resources:
-        ram="20G"
+        ram="50G"
     shell:
         """
         grep $'\t'exon$'\t' {input} > {output.exon}
-        sort -k1,1 -k4,4 {output.exon} > {output.sorted_gtf}
-        bedtools intersect -sorted -wa -s -split -a {output.sorted_gtf} -b {input.bam} > {output.final}
+        bedtools intersect -wa -s -split -a {output.sorted_gtf} -b {input.bam} > {output.final}
         """
         
 rule gffcompare:
