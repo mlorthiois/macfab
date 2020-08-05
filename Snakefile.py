@@ -153,6 +153,7 @@ rule talon:
     conda:
         "envs/talon.yaml"
     threads:10
+    shadow: "shallow"
     resources:
         ram="20G"
     log: "talon_{annot}.log"
