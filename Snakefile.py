@@ -191,7 +191,7 @@ rule only_seen_exons:
         ram="50G"
     shell:
         """
-        grep $'\t'exon$'\t' {input} > {output.exon}
+        grep $'\t'exon$'\t' {input.gtf} > {output.exon}
         bedtools intersect -wa -s -split -a {output.sorted_gtf} -b {input.bam} > {output.final}
         """
         
