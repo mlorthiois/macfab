@@ -6,7 +6,7 @@ wildcard_constraints:
     annot="[^./]+" # forbid wildcard "annot" to contain "/" or "." in order to ensure proper assignation
 
 configfile: "config.yaml" # path to the config file
-localrules: all, compact, config # never launch the all and the compact rules on the cluster
+localrules: all, compact, configR, configShell # never launch the all and the compact rules on the cluster
 
 rule all: # a simple rule to launch the full pipeline without specifiying the final rule (graph)
     input:
