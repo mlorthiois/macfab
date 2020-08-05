@@ -199,14 +199,18 @@ rule gffcompare:
         test="{software}.{annot}.filtered.gtf",
         ref=lambda wildcards: config["annotation"][wildcards.annot]
     output:
-        folder=directory("{software}.{annot}.folder"),
-        result="{software}.{annot}.folder/{software}.{annot}.stats"
+        result="{software}.{annot}.stats"
     threads:1
     log: "gffcompare_{annot}_{software}.log"
+    params:
+        prefix="{software}.{annot}",
+        gffcompare=config["gffcompare"]
     resources:
         ram="6G"
     shell:
-        config["gffcompare"] + " {input.test} -r {input.ref} -o {output.folder}"
+         """
+         {params.gffcomapre} {input.test} -r {input.ref} -o {params.prefix}
+         """
         
 rule parse_gffcompare:
     input:
