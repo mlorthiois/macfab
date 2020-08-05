@@ -23,13 +23,14 @@ rule configR:
         "scripts/install.R"
         
 rule configShell:
-    output: touch(".shell_config")
-    params:
-        talon=config["TALON_url"]
+    output:
+        check=touch(".shell_config"),
+        install=temp("TALON-5.0"),
+        tar=temp("v5.0.tar.gz")
     run:
-        shell("wget {params.talon}")
-        shell("tar -xzf v*.tar.gz")
-        shell("cd TALON*")
+        shell("wget https://github.com/mortazavilab/TALON/archive/v5.0.tar.gz")
+        shell("tar -xzf {output.tar}")
+        shell("cd {output.install}")
         shell("pip install .")
 
 rule compact:
