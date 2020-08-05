@@ -209,7 +209,7 @@ rule gffcompare:
         ram="6G"
     shell:
          """
-         {params.gffcomapre} {input.test} -r {input.ref} -o {params.prefix}
+         {params.gffcompare} {input.test} -r {input.ref} -o {params.prefix}
          """
         
 rule parse_gffcompare:
