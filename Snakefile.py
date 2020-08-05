@@ -203,13 +203,14 @@ rule gffcompare:
     threads:1
     log: "gffcompare_{annot}_{software}.log"
     params:
-        prefix="{software}.{annot}",
+        prefix="{software}_{annot}",
         gffcompare=config["gffcompare"]
     resources:
         ram="6G"
     shell:
          """
          {params.gffcompare} {input.test} -r {input.ref} -o {params.prefix}
+         mv {params.prefix}.stats {software}.{annot}.stats
          """
         
 rule parse_gffcompare:
