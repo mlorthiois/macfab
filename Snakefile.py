@@ -200,7 +200,7 @@ rule gffcompare:
         ref=lambda wildcards: config["annotation"][wildcards.annot]
     output:
         folder=directory("{software}.{annot}.folder"),
-        result="{software}.{annot}.stats"
+        result="{software}.{annot}.folder/{software}.{annot}.stats"
     threads:1
     log: "gffcompare_{annot}_{software}.log"
     resources:
@@ -210,7 +210,7 @@ rule gffcompare:
         
 rule parse_gffcompare:
     input:
-        expand("{software}.{annot}.stats", software=SOFTWARE, annot=config["annotation"].keys())
+        expand("{software}.{annot}.folder/{software}.{annot}.stats", software=SOFTWARE, annot=config["annotation"].keys())
     output:
         Sensitivity="Sensitivity.parsed.tsv",
         Values="Values.parsed.tsv"
