@@ -140,7 +140,7 @@ rule talon:
     conda:
         "envs/talon.yaml"
     threads:10
-    
+    shadow: "shallow"
     resources:
         ram="20G"
     params:
@@ -154,6 +154,7 @@ rule talon:
         echo {params.cell_line},Dog_transcript,nanopore,{params.prefix}_labeled.sam > talon.config
         ~/.local/bin/talon --f talon.config --db {output.db} --build CanFam3 -t {threads} --o {threads}
         ~/.local/bin/talon_create_GTF --db {output.db} -b CanFam3 -a {params.used_annot} --o {output.gtf}
+        mv {output.gtf}_talon.gtf {output.gtf}
         """
         
 rule only_seen_exons:
