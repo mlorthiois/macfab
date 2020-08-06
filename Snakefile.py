@@ -203,7 +203,7 @@ rule gffcompare:
     shell:
          """
          {params.gffcompare} {input.test} -r {input.ref} -o {params.prefix}
-         mv {params.prefix}.stats {software}.{annot}.stats
+         mv {params.prefix}.stats {output.result}
          """
         
 rule parse_gffcompare:
