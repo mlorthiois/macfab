@@ -21,15 +21,6 @@ rule configR:
         "envs/r.yaml"
     script:
         "scripts/install.R"
-        
-rule configShell:
-    shadow: "minimal"
-    output:
-        check=touch(".shell_config")
-    run:
-        shell("wget https://github.com/mortazavilab/TALON/archive/v5.0.tar.gz")
-        shell("tar -xzf v5.0.tar.gz")
-        shell("cd TALON-5.0 && pip install .")
 
 rule compact:
     input:
@@ -158,14 +149,11 @@ rule talon:
         used_annot="{annot}"
     shell:
         """
-        talon_label_reads --deleteTmp --f {input.sam} --g {input.fa} --o {params.prefix} --t={threads}
-        if [ -f "{params.prefix}.db" ]; then
-        rm "{params.prefix}.db"
-        fi
-        talon_initialize_database --f {input.gtf} --g CanFam3 --a {params.used_annot} --idprefix {params.prefix} --o {params.prefix}
+        ~/.local/bin/talon_label_reads --f {input.sam} --g {input.fa} --o {params.prefix} --t={threads}
+        ~/.local/bin/talon_initialize_database --f {input.gtf} --g CanFam3 --a {params.used_annot} --idprefix {params.prefix} --o {params.prefix}
         echo {params.cell_line},Dog_transcript,nanopore,{params.prefix}_labeled.sam > talon.config
-        talon --f talon.config --db {output.db} --build CanFam3 -t {threads} --o {threads}
-        talon_create_GTF --db {output.db} -b CanFam3 -a {params.used_annot} --o {output.gtf}
+        ~/.local/bin/talon --f talon.config --db {output.db} --build CanFam3 -t {threads} --o {threads}
+        ~/.local/bin/talon_create_GTF --db {output.db} -b CanFam3 -a {params.used_annot} --o {output.gtf}
         """
         
 rule only_seen_exons:
