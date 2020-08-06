@@ -50,7 +50,6 @@ rule gtfToBed12:
     conda:
         "envs/minimap.yaml" # defines a conda env to launch the command
     threads:1
-    log: "gtf_{annot}.log"
     resources:
         ram="6G"
     shell:
@@ -66,7 +65,6 @@ rule mapping:
     conda:
         "envs/minimap.yaml"
     threads:10
-    log: "mapping_{annot}.log"
     resources:
         ram="20G"
     shell:
@@ -80,7 +78,6 @@ rule sam2bam:
     conda:
         "envs/samtools.yaml"
     threads:10
-    log: "sam2bam_{annot}.log"
     resources:
         ram="6G"
     shell:
@@ -98,7 +95,6 @@ rule bambu:
     conda:
         "envs/r.yaml"
     threads:1
-    log: "bambu_{annot}.log"
     resources:
         ram="10G"
     script:
@@ -113,7 +109,6 @@ rule stringtie:
     threads:6
     resources:
         ram="10G"
-    log: "stringtie_{annot}.log"
     shell:
         config["stringtie"] + " -L -G {input.gtf} -o {output} -p {threads} {input.bam}"
 
@@ -131,7 +126,6 @@ rule flair:
     threads:1
     resources:
         ram="10G"
-    log: "flair_{annot}.log"
     params:
         bed12=config["bed12ToGtf"], # needed to use the value in multi-lines shell command
         prefix="flair.{annot}" # software use prefix but prefix can't be used as output (because no file matching exactly this name will be created)
@@ -150,14 +144,14 @@ rule talon:
         gtf=lambda wildcards: config["annotation"][wildcards.annot],
         isConfig=".shell_config"
     output:
-        "talon.{annot}.gtf"
+        gtf="talon.{annot}.gtf",
+        db="talon.{annot}.db"
     conda:
         "envs/talon.yaml"
     threads:10
     shadow: "shallow"
     resources:
         ram="20G"
-    log: "talon_{annot}.log"
     params:
         cell_line=config["cell_line"],
         prefix="talon.{annot}",
@@ -170,8 +164,8 @@ rule talon:
         fi
         talon_initialize_database --f {input.gtf} --g CanFam3 --a {params.used_annot} --idprefix {params.prefix} --o {params.prefix}
         echo {params.cell_line},Dog_transcript,nanopore,{params.prefix}_labeled.sam > talon.config
-        talon --f talon.config --db {params.prefix}.db --build CanFam3 -t {threads} --o {threads}
-        talon_create_GTF --db {params.prefix}.db -b CanFam3 -a {params.used_annot} --o {output}
+        talon --f talon.config --db {output.db} --build CanFam3 -t {threads} --o {threads}
+        talon_create_GTF --db {output.db} -b CanFam3 -a {params.used_annot} --o {output.gtf}
         """
         
 rule only_seen_exons:
@@ -183,7 +177,6 @@ rule only_seen_exons:
         final="{software}.{annot}.filtered.gtf",
         exon=temp("{software}.{annot}.EO.gtf")
     threads:1
-    log: "only_seen_exons_{annot}_{software}.log"
     conda:
         "envs/bedtools.yaml"
     resources:
@@ -202,7 +195,6 @@ rule gffcompare:
         result="{software}.{annot}.stats"
     threads:1
     shadow: "shallow"
-    log: "gffcompare_{annot}_{software}.log"
     params:
         prefix="{software}_{annot}",
         gffcompare=config["gffcompare"]
@@ -221,7 +213,6 @@ rule parse_gffcompare:
         Sensitivity="Sensitivity.parsed.tsv",
         Values="Values.parsed.tsv"
     threads:1
-    log: "parse_gffcompare.log"
     resources:
         ram="6G"
     script:
@@ -233,7 +224,6 @@ rule graph:
         Values="Values.parsed.tsv"
     output:
         "Graph.recap.pdf"
-    log: "graph.log"
     threads:1
     resources:
         ram="6G"
