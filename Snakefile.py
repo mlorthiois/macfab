@@ -81,7 +81,6 @@ rule bambu:
         fa=config["reference_path"],
         isConfig=".R_config"
     output:
-        o_dir=directory("bambu.{annot}"),
         o_name="bambu.{annot}.gtf"
     conda:
         "envs/r.yaml"
