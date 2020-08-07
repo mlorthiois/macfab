@@ -82,6 +82,8 @@ rule bambu:
         isConfig=".R_config"
     output:
         o_name="bambu.{annot}.gtf"
+    shadow:
+        "shallow"
     conda:
         "envs/r.yaml"
     threads:1
