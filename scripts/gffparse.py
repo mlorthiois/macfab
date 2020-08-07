@@ -1,7 +1,10 @@
 import glob
 import re
 
-print('Searching files matching arg "' + list(snakemake.input) + '"...')
+filenames=str()
+filenames=filenames.join(list(snakemake.input))
+
+print('Searching files matching arg "' + filenames + '"...')
 for type_value in "Values", "Sensitivity":
     results_file=open(type_value + ".gffparse.tsv", "w") # path + type + extension
     total_line=dict() # dict of [annot]=type,value;type2,value2;...
@@ -15,7 +18,7 @@ for type_value in "Values", "Sensitivity":
     else:
         print("Wrong keyword. Valid keywords: Sensitivity, Values")
 
-    for stats_filename in glob.glob(snakemake.input[0]):
+    for stats_filename in list(snakemake.input):
         stats_file=open(stats_filename)
         soft_ref=stats_filename.split("/")[-1].split(".") # 0 = soft 1 = annot
         for group in re.findall(regex, stats_file.read()): # return tuples of label,found,total or label,sensi,precision
