@@ -143,7 +143,7 @@ rule talon:
     threads:20
     shadow: "shallow"
     resources:
-        ram="20G"
+        ram="50G"
     params:
         cell_line=config["cell_line"],
         prefix="talon.{annot}",
