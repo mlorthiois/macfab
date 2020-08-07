@@ -115,7 +115,7 @@ rule flair:
     conda:
         "envs/flair.yaml"
     shadow: "shallow"
-    threads:1
+    threads:20
     resources:
         ram="10G"
     params:
@@ -140,7 +140,7 @@ rule talon:
         db="talon.{annot}.db"
     conda:
         "envs/talon.yaml"
-    threads:10
+    threads:20
     shadow: "shallow"
     resources:
         ram="20G"
