@@ -5,7 +5,7 @@ gtf.file <- snakemake@input[["gtf"]]
 test.bam <- snakemake@input[["bam"]]
 fa.file <- snakemake@input[["fa"]]
 
-bambuAnnotations <- prepareAnnotations(gtf.file)
+bambuAnnotations <- prepareAnnotationsFromGtf(gtf.file)
 
 se <- bambu(reads = test.bam, annotations = bambuAnnotations, genomeSequence = fa.file)
 writeBambuOutput(se, path = snakemake@output[["o_dir"]])
