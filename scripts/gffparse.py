@@ -3,7 +3,7 @@ import re
 
 print('Searching files matching arg "' + snakemake.input[0] + '"...')
 for type_value in "Values", "Sensitivity":
-    results_file=open(snakemake.output[0] + type_value + ".gffparse.tsv", "w") # path + type + extension
+    results_file=open(type_value + ".gffparse.tsv", "w") # path + type + extension
     total_line=dict() # dict of [annot]=type,value;type2,value2;...
     
     if type_value=="Sensitivity":
@@ -17,7 +17,7 @@ for type_value in "Values", "Sensitivity":
 
     for stats_filename in glob.glob(snakemake.input[0]):
         stats_file=open(stats_filename)
-        soft_ref=stats_filename.split("/")[-1].split(".")[0].split("_") # 0 = soft 1 = annot
+        soft_ref=stats_filename.split("/")[-1].split(".") # 0 = soft 1 = annot
         for group in re.findall(regex, stats_file.read()): # return tuples of label,found,total or label,sensi,precision
             if type_value=="Sensitivity":
                 results_file.write(soft_ref[0] + "\t" + soft_ref[1] + "\tSensitivity\t" + group[0] + "\t" + group[1] + "\n")
