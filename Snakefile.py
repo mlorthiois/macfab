@@ -206,7 +206,7 @@ rule parse_gffcompare:
     resources:
         ram="6G"
     script:
-        "scripts/gfffparse.py"
+        "scripts/gffparse.py"
  
 rule graph:
     input:
