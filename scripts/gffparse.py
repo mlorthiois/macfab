@@ -1,7 +1,7 @@
 import glob
 import re
 
-print('Searching files matching arg "' + snakemake.input + '"...')
+print('Searching files matching arg "' + list(snakemake.input) + '"...')
 for type_value in "Values", "Sensitivity":
     results_file=open(type_value + ".gffparse.tsv", "w") # path + type + extension
     total_line=dict() # dict of [annot]=type,value;type2,value2;...
