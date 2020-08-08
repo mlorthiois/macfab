@@ -29,7 +29,7 @@ rule compact:
        "compacted.fastq"
     threads:4
     resources:
-        ram="15G"
+        ram="50G"
     shell:
         "cat {input} > {output}"
 
