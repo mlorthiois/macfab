@@ -29,7 +29,7 @@ rule compact:
        "compacted.fastq"
     shell:
         """
-        for file in $(ls {input})
+        for file in {input}
         do
         cat $file >> {output}
         done
