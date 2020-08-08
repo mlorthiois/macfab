@@ -218,4 +218,4 @@ rule graph:
     resources:
         ram="6G"
     script:
-        "scripts/graph.R"
+        "scripts/graphs.R"
