@@ -6,7 +6,7 @@ wildcard_constraints:
     annot="[^./]+" # forbid wildcard "annot" to contain "/" or "." in order to ensure proper assignation
 
 configfile: "config.yaml" # path to the config file
-localrules: all, compact, configR # never launch the all and the compact rules on the cluster
+localrules: all, configR # never launch the all and the compact rules on the cluster
 
 rule all: # a simple rule to launch the full pipeline without specifiying the final rule (graph)
     input:
@@ -27,9 +27,9 @@ rule compact:
         lambda files: glob.glob(config["fastq_path"])
     output:
        "compacted.fastq"
-    threads:1
+    threads:4
     resources:
-        ram="6G"
+        ram="15G"
     shell:
         "cat {input} > {output}"
 
