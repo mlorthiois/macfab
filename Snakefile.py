@@ -54,7 +54,7 @@ rule mapping:
         "envs/minimap.yaml"
     threads:10
     resources:
-        ram="20G"
+        ram="60G"
     shell:
         "minimap2 -t {threads} -ax splice --MD --junc-bed {input.bed} {input.fa} {input.fastq} > {output}"
         
