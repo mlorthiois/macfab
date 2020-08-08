@@ -23,12 +23,12 @@ rule configR:
         "scripts/install.R"
 
 rule compact:
-    input:
-        lambda files: glob.glob(config["fastq_path"])
     output:
        "compacted.fastq"
+    params:
+        config["fastq_path"]
     shell:
-        "cat {input} > {output}"
+        "cat {params} > {output}"
 
 rule gtfToBed12:
     input:
