@@ -215,6 +215,8 @@ rule graph:
     output:
         "Graph.recap.pdf"
     threads:1
+    conda:
+        "envs/r.yaml"
     resources:
         ram="6G"
     script:
