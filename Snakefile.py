@@ -200,8 +200,8 @@ rule parse_gffcompare:
     input:
         expand("{software}.{annot}.stats", software=SOFTWARE, annot=config["annotation"].keys())
     output:
-        Sensitivity="Sensitivity.parsed.tsv",
-        Values="Values.parsed.tsv"
+        Sensitivity="Sensitivity.gffparse.tsv",
+        Values="Values.gffparse.tsv"
     threads:1
     resources:
         ram="6G"

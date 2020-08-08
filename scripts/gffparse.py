@@ -37,5 +37,7 @@ for type_value in "Values", "Sensitivity":
         for key in total_line.keys():
             for element in total_line[key]:
                 results_file.write(element[0] + "\t" + key + "\tTotal\t" + element[1] + "\t" + element[2] + "\n") # file:label:value
-
-        print("Data summarised and saved as " + snakemake.output[0] + type_value + ".gffparse.tsv")
+        
+        filenames=" "
+        filenames=filenames.join(list(snakemake.output))
+        print("Data summarised and saved as " + filenames)
