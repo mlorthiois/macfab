@@ -210,8 +210,8 @@ rule parse_gffcompare:
  
 rule graph:
     input:
-        Sensitivity="Sensitivity.parsed.tsv",
-        Values="Values.parsed.tsv"
+        Sensitivity="Sensitivity.gffparse.tsv",
+        Values="Values.gffparse.tsv"
     output:
         "Graph.recap.pdf"
     threads:1
