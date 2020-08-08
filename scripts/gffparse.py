@@ -1,7 +1,7 @@
 import glob
 import re
 
-filenames=str()
+filenames=" "
 filenames=filenames.join(list(snakemake.input))
 
 print('Searching files matching arg "' + filenames + '"...')
