@@ -28,7 +28,12 @@ rule compact:
     output:
        "compacted.fastq"
     shell:
-        "cat {input} > {output}"
+        """
+        for file in $(ls {input}:
+        do
+        cat $file >> {output}
+        done
+        """
 
 rule gtfToBed12:
     input:
