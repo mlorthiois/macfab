@@ -85,7 +85,7 @@ rule bambu:
         "envs/r.yaml"
     threads:1
     resources:
-        ram="10G"
+        ram="30G"
     script:
         "scripts/bambu.R"
         
