@@ -24,7 +24,7 @@ rule configR:
 
 rule compact:
     output:
-       "compacted.fastq"
+       temp("compacted.fastq")
     params:
         config["fastq_path"]
     shell:
@@ -34,7 +34,7 @@ rule gtfToBed12:
     input:
         lambda wildcards: config["annotation"][wildcards.annot]
     output:
-        "{annot}.converted.bed12"
+        temp("{annot}.converted.bed12")
     conda:
         "envs/minimap.yaml" # defines a conda env to launch the command
     threads:1
@@ -49,7 +49,7 @@ rule mapping:
         bed="{annot}.converted.bed12",
         fa=config["reference_path"]
     output:
-        "minimap.{annot}.sam"
+        temp("minimap.{annot}.sam")
     conda:
         "envs/minimap.yaml"
     threads:10
