@@ -130,8 +130,7 @@ rule talon:
     input:
         fa=config["reference_path"],
         sam="minimap.{annot}.sam",
-        gtf=lambda wildcards: config["annotation"][wildcards.annot],
-        isConfig=".shell_config"
+        gtf=lambda wildcards: config["annotation"][wildcards.annot]
     output:
         gtf="talon.{annot}.gtf",
         db="talon.{annot}.db"
