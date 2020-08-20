@@ -170,7 +170,7 @@ rule only_seen_exons:
     shell:
         """
         grep $'\t'exon$'\t' {input.gtf} > {output.exon}
-        bedtools intersect -wa -s -split -a {output.exon} -b {input.bam} > {output.final}
+        bedtools intersect -u -s -split -a {output.exon} -b {input.bam} > {output.final}
         """
         
 rule gffcompare:
