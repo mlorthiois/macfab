@@ -137,6 +137,7 @@ rule talon:
     conda:
         "envs/talon.yaml"
     threads:20
+    priority: 50 # ensure that the rule is created top priority to avoid disk space issues
     shadow: "shallow"
     resources:
         ram="50G"
