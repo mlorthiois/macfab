@@ -8,7 +8,7 @@ bed12ToGtf: "~tderrien/bin/convert/bed12Togtf.sh"
 ## BEWARE : this part needs to be formatted as a dic {name:"path",name:"path",...}
 annotation: {ens: "/groups/dog/data/canFam3/annotation/Ensembl99/Canis_familiaris.CanFam3.1.99.gtf", custom: "/groups/dog/data/canFam3/annotation/canfam3.2/canfam3_cons_annot_TritouPuppetMasterChief_23-03-2016_lncClasse_geneBiotype_withEnsCds_withSilicoCds_withGoodGeneSource.gtf"}
 ## simple paths
-fastq_path: "/home/genouest/cnrs_umr6290/fsassolas/Data/snakemake_test/Data/*/*.fastq" 
+fastq_path: "/groups/dog/data/canFam3/NGS/Melanoma/RNA/MINION/Bear/20200227_1750_MN29715_FAL43795_4f1b5364/*/*fastq"
 reference_path: "/home/genouest/cnrs_umr6290/tderrien/canFam3/sequence/softmasked/Canis_familiaris.CanFam3.1.72.dna_sm.toplevel.fa"
 
 # describe data here for talon
@@ -16,5 +16,5 @@ reference_path: "/home/genouest/cnrs_umr6290/tderrien/canFam3/sequence/softmaske
 ## reference genome build
 reference_build: "CanFam3"
 ## name of the cell line
-cell_line: "CML10"
-data_type: "dog_transcript"
+cell_line: "Bearr"
+data_type: "dog_tx"

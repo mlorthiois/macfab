@@ -131,7 +131,7 @@ rule flair:
     conda:
         "envs/flair.yaml"
     shadow: "shallow"
-    threads:20
+    threads:40
     resources:
         ram="30G"
     params:
@@ -139,6 +139,8 @@ rule flair:
         prefix="flair.{annot}" # software use prefix but prefix can't be used as output (because no file matching exactly this name will be created)
     shell:
         """
+        python3 -m pip install kerneltree
+        python3 -m pip install Cython
         bamToBed -bed12 -i {input.bam} > converted.bed12
         flair.py correct -q converted.bed12 -g {input.fa} -f {input.gtf} -o {params.prefix}
         flair.py collapse -g {input.fa} -r {input.fastq} -q {params.prefix}_all_corrected.bed -o {params.prefix}
