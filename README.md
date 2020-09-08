@@ -11,9 +11,14 @@
 ## Installation process
 Clone the git repo via git clone or use a release.
 # How to use
-First edit the `config.yaml` file to set paths to softs, datasets and metadata.
-Then issue the command:
-`snakemake --use-conda -s Snakefile.py --cores [number] --cluster "sbatch --cpus-per-task={threads} --mem={resources.ram}" -j 5`
+First edit the `config.yaml` file to set paths to softs, datasets and metadata.   
+Then load snakemake env and issue the command:   
+```
+. /local/env/envsnakemake-5.20.1.sh
+
+snakemake --use-conda -s Snakefile.py --cores [number] --cluster "sbatch --cpus-per-task={threads} --mem={resources.ram}" -j 5
+```
+
 - You can replace "Snakefile.py" with the path to the file but beware that the config file is expected to be in the current working dir.
 - The "cores" option set the max threads available to the rules.
 - Note that all rules are launched separately with their own RAM and CPU on the cluster : launching snakemake with the defaults values for the cluster is fine.
