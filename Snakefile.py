@@ -111,11 +111,19 @@ rule stringtie:
         bam="minimap.{annot}.sorted.bam"
     output:
         "stringtie.{annot}.gtf"
+    conda:
+        "envs/stringtie.yaml"
     threads:6
     resources:
         ram="10G"
     shell:
-        config["stringtie"] + " -L -G {input.gtf} -o {output} -p {threads} {input.bam}"
+        """
+        if [[ {input.gtf} =~ \.gz$ ]];
+         then 
+            echo 'gunzipping {input.gtf}'; gunzip -c > .tmp; mv .tmp {input.gtf}
+         fi  
+         stringtie -L -G {input.gtf} -o {output} -p {threads} {input.bam}
+         """
 
 # annotates using flair
 # flair needs bed12 mapping
@@ -131,7 +139,7 @@ rule flair:
     conda:
         "envs/flair.yaml"
     shadow: "shallow"
-    threads:40
+    threads:20
     resources:
         ram="30G"
     params:
@@ -207,15 +215,16 @@ rule gffcompare:
     output:
         result="{software}.{annot}.stats"
     threads:1
+    conda:
+        "envs/gffcompare.yaml"
     shadow: "shallow"
     params:
         prefix="{software}_{annot}",
-        gffcompare=config["gffcompare"]
     resources:
         ram="6G"
     shell:
          """
-         {params.gffcompare} {input.test} -r {input.ref} -o {params.prefix}
+         gffcompare {input.test} -r {input.ref} -o {params.prefix}
          mv {params.prefix}.stats {output.result}
          """
 # format values to use it as R input      
