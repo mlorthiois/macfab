@@ -1,5 +1,9 @@
 name: flair
+channels:
+  - bioconda
 dependencies:
-- flair
-- bedtools
-- samtools=1.6
+  - flair
+  - bedtools
+  - samtools=1.6
+  - ucsc-bedtogenepred
+  - ucsc-genepredtogtf
