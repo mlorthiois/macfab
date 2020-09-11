@@ -49,7 +49,7 @@ rule gtfToBed12:
     resources:
         ram="6G"
     shell:
-        config["paftools.js"] + " gff2bed {input} > {output}"
+        " paftools.js gff2bed {input} > {output}"
 
 # map fastq on the ref genome with annotations provided
 rule mapping:
@@ -143,7 +143,7 @@ rule flair:
     resources:
         ram="30G"
     params:
-        bed12=config["bed12ToGtf"], # needed to use the value in multi-lines shell command
+        #bed12=config["bed12ToGtf"], # needed to use the value in multi-lines shell command
         prefix="flair.{annot}" # software use prefix but prefix can't be used as output (because no file matching exactly this name will be created)
     shell:
         """
@@ -152,7 +152,7 @@ rule flair:
         bamToBed -bed12 -i {input.bam} > converted.bed12
         flair.py correct -q converted.bed12 -g {input.fa} -f {input.gtf} -o {params.prefix}
         flair.py collapse -g {input.fa} -r {input.fastq} -q {params.prefix}_all_corrected.bed -o {params.prefix}
-        {params.bed12} {params.prefix}.isoforms.bed > {output}
+        bedToGenePred {params.prefix}.isoforms.bed  stdout | genePredToGtf file stdin stdout -utr -source=gene PredToGtf -honorCdsStat > {output}
         """
 # analyze expression using talon
 # creates a dedicated config file on the fly using information provided in the config file   
