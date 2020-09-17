@@ -2,7 +2,7 @@
     	
 #SBATCH --job-name=test_macfab
 #SBATCH --chdir=/home/genouest/cnrs_umr6290/mlorthiois/workspace/macfab/
-#SBATCH --nodelist=cl1n036
+#SBATCH --nodelist=cl1n034
 #SBATCH --cpus-per-task=30
 #SBATCH --mem=50G
 #SBATCH --output=slurm_macfab.out

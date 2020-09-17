@@ -1,6 +1,6 @@
 import glob
 
-SOFTWARE=["stringtie", "flair"]
+SOFTWARE=["stringtie", "flair", "talon"]
 wildcard_constraints:
     annot="[^./]+" # forbid wildcard "annot" to contain "/" or "." in order to ensure proper assignation
 
@@ -138,7 +138,6 @@ rule stringtie:
          """
 
 
-
 ###############################################################################
 rule flair_correct:
     input:
@@ -186,42 +185,90 @@ rule flairbedToGenePred:
         """
 
 
-
-
 ###############################################################################
-# analyze expression using talon
-# creates a dedicated config file on the fly using information provided in the config file   
-# renames output to match the expected result  
+rule talon_label_reads:
+    input:
+        sam="results/minimap2/minimap.{annot}.sam",
+        fa=config["reference_path"]
+    output:
+        "results/talon/talon.{annot}_labeled.sam"
+    params:
+        prefix="results/talon/talon.{annot}"
+    conda:
+        "envs/talon.yaml"
+    shell:
+        """
+        ~/.local/bin/talon_label_reads --f {input.sam} \
+            --g {input.fa} --o {params.prefix}
+        """
+
+
+rule talon_initialize_database:
+    input:
+        gtf="results/utilities/uncompress.{annot}.gtf"
+    output:
+        db="results/talon/talon.{annot}.db",
+    params:
+        reference_genome_name = config["reference_genome_name"],
+        prefix = "results/talon/talon.{annot}",
+        annotation_name = "{annot}"
+    conda:
+        "envs/talon.yaml"
+    shell:
+        """
+        ~/.local/bin/talon_initialize_database --f {input.gtf} \
+            --g {params.reference_genome_name} --a {params.annotation_name} \
+            --idprefix {params.prefix} --o {params.prefix}
+        """
+
+
+# rule create_talon_configfile:
+#     params:
+#         id=config["sample_id"],
+#         description=config["sample_description"],
+#         ngs="Nanoseq",
+#         sam="results/talon/talon.{annot}_labeled.sam"
+#     output:
+#         "results/talon/talon.{annot}.config"
+#     shell:
+#        "echo {params.id},{params.description},{params.ngs},{params.sam} > {output}" 
+
+
 # rule talon:
 #     input:
-#         fa=config["reference_path"],
-#         sam="results/minimap2/minimap.{annot}.sam",
-#         gtf=lambda wildcards: config["annotation"][wildcards.annot]
+#         config="results/talon/talon.{annot}.config",
+#         db="results/talon/talon.{annot}.db",
 #     output:
-#         gtf="results/talon/talon.{annot}.gtf",
-#         db="results/talon/talon.{annot}.db"
+#         "results/talon/talon.{annot}_talon_read_annot.tsv"
 #     conda:
 #         "envs/talon.yaml"
-#     threads:20
-#     priority: 50 # ensure that the rule is created top priority to avoid disk space issues
-#     shadow: "shallow"
-#     resources:
-#         ram="50G"
 #     params:
-#         cell_line=config["cell_line"],
-#         prefix="talon.{annot}",
-#         used_annot="{annot}",
-#         reference_build=config["reference_build"],
-#         data_type=config["data_type"]
+#         build=config["reference_genome_name"],
+#         prefix="results/talon/talon.{annot}"
 #     shell:
 #         """
-#         ~/.local/bin/talon_label_reads --f {input.sam} --g {input.fa} --o {params.prefix} --t={threads}
-#         ~/.local/bin/talon_initialize_database --f {input.gtf} --g {params.reference_build} --a {params.used_annot} --idprefix {params.prefix} --o {params.prefix}
-#         echo {params.cell_line},{params.data_type},nanopore,{params.prefix}_labeled.sam > talon.config
-#         ~/.local/bin/talon --f talon.config --db {output.db} --build {params.reference_build} -t {threads} --o {threads}
-#         ~/.local/bin/talon_create_GTF --db {output.db} -b {params.reference_build} -a {params.used_annot} --o {output.gtf}
-#         mv {output.gtf}_talon.gtf {output.gtf}
+#         ~/.local/bin/talon --f {input.config} --db {input.db} \
+#             --build {params.build} --o {params.prefix}
 #         """
+
+
+rule talon_create_GTF:
+    input:
+        db="results/talon/talon.{annot}.db"
+    output:
+        "results/talon/talon.{annot}.gtf"
+    params:
+        annotation_name="{annot}",
+        ref_name=config["reference_genome_name"],
+        prefix="results/talon/talon.{annot}"
+    conda:
+        "envs/talon.yaml"
+    shell:
+        """
+        ~/.local/bin/talon_create_GTF --db {input.db} \
+            -b {params.ref_name} -a {params.annotation_name} --o {params.prefix} \
+            && mv {params.prefix}_talon.gtf {output}
+        """
 
 
 ###############################################################################
@@ -231,8 +278,8 @@ rule only_seen_exons:
         gtf="results/{software}/{software}.{annot}.gtf",
         bam="results/minimap2/minimap.{annot}.sorted.bam"
     output:
-        final="results/gffcompare/{software}.{annot}.filtered.gtf",
-        exon=temp("{software}.{annot}.EO.gtf")
+        final=temp("results/gffcompare/{software}.{annot}.filtered.gtf"),
+        exon=temp("results/gffcompare/{software}.{annot}.EO.gtf")
     threads:1
     conda:
         "envs/bedtools.yaml"
