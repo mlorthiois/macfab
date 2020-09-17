@@ -6,7 +6,7 @@ filenames=filenames.join(list(snakemake.input))
 
 print('Searching files matching arg "' + filenames + '"...')
 for type_value in "Values", "Sensitivity":
-    results_file=open(type_value + ".gffparse.tsv", "w") # path + type + extension
+    results_file=open("results/gffcompare/"+ type_value + ".gffparse.tsv", "w") # path + type + extension
     total_line=dict() # dict of [annot]=type,value;type2,value2;...
     
     if type_value=="Sensitivity":

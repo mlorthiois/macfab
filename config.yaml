@@ -1,19 +1,13 @@
-# paths to installed software
-# paftool not mandotory since included with minimap 
-# paftools.js: "/home/genouest/cnrs_umr6290/fsassolas/paftools_test.js" # fix to avoid issues with the default paftools which doesnt work
-#bed12ToGtf: "~tderrien/bin/convert/bed12Togtf.sh"
-
-# path to ref genome, annotation and fastq
-## BEWARE : this part needs to be formatted as a dic {name:"path",name:"path",...}
-annotation: {ens: "data/Homo_sapiens.GRCh38.101.gtf.chr21.gz"}
-## simple paths
-fastq_path: "data/Homo_sapiens.GRCh38.dna.chromosome.21.fa.gz"
-reference_path: "data/Homo_sapiens.GRCh38.101.gtf.chr21.gz"
+# Your inputs here
+annotation:
+  GRCh38: "data/Homo_sapiens.GRCh38.101.gtf.chr21.gz"
+  Ensembl: "data/Homo_sapiens.GRCh38.101.gtf.chr21.gz"
+fastq_path: "data/test.fq"
+reference_path: "data/Homo_sapiens.GRCh38.dna.chromosome.21.fa.gz"
 
 # describe data here for talon
 # see https://github.com/mortazavilab/TALON#run_talon, --f option
 ## reference genome build
 reference_build: "hg38"
-## name of the cell line
 cell_line: "SGNex_HepG2_directRNA_replicate1_run3"
 data_type: "hsa_tx"

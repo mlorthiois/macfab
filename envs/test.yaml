@@ -1,0 +1,24 @@
+name: test
+channels:
+  - default
+  - conda-forge
+  - bioconda
+  - anaconda
+dependencies:
+  - flair
+  - gffcompare
+  - isonclust
+  - minimap2
+  - r
+  - stringtie
+  - pybedtools
+  - r-devtools
+  - r-biocmanager
+  - bedtools
+  - samtools
+  - ucsc-bedtogenepred
+  - ucsc-genepredtogtf
+  - cython
+  - pip
+  - pip:
+      - kerneltree

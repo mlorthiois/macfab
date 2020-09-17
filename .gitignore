@@ -1,0 +1,6 @@
+.conda
+.snakemake
+.cache
+slurm*
+results
+rules

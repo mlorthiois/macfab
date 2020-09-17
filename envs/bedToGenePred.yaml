@@ -1,0 +1,6 @@
+name: bedToGenePred
+channels:
+  - bioconda
+dependencies:
+  - ucsc-bedtogenepred
+  - ucsc-genepredtogtf
