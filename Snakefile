@@ -10,7 +10,9 @@ localrules: all # never launch the all and the compact rules on the cluster
  # a simple rule to launch the full pipeline without specifiying the final rule (graph)
 rule all:
     input:
-        results="results/gffcompare/Graph.recap.pdf"
+        results="results/gffcompare/Graph.recap.pdf",
+        #talon_tsv=expand("results/talon/talon.{annot}_talon_read_annot.tsv",
+        #                annot=config["annotation"])
     threads:1
     resources: # is used by snakemake as input for the sbatch command
         ram="6G"
@@ -46,11 +48,23 @@ rule ungzip_genome_ref:
     input:
         config["reference_path"]
     output:
-        "results/utilities/reference.dna.uncompressed.fa"
+        temp("results/utilities/reference.dna.uncompressed.fa")
     run:
-        print(input[0][-2:])
         if input[0][-2:]=="gz":
             shell("gunzip -c {input} > {output}")
+        else:
+            shell("cp {input} {output}")
+    
+rule ungzip_gtf:
+    input:
+        lambda wildcards: config["annotation"][wildcards.annot]
+    output:
+        temp("results/utilities/uncompress.{annot}.gtf")
+    run:
+        if input[0][-2:]=="gz":
+            shell("gunzip -c {input} > {output}")
+        else:
+            shell("cp {input} {output}")
 
 
 rule gtfToBed12:
@@ -67,6 +81,9 @@ rule gtfToBed12:
         "paftools.js gff2bed {input} > {output}"
 
 
+
+
+###############################################################################
 rule mapping:
     input:
         fastq=config["fastq_path"],
@@ -80,7 +97,10 @@ rule mapping:
     resources:
         ram="60G"
     shell:
-        "minimap2 -t {threads} -ax splice --MD --junc-bed {input.bed} {input.fa} {input.fastq} > {output}"
+        """
+        minimap2 -t {threads} -ax splice --MD \
+        --junc-bed {input.bed} {input.fa} {input.fastq} > {output}
+        """
 
 
 ###############################################################################
@@ -119,10 +139,9 @@ rule mapping:
 ###############################################################################
 rule stringtie:
     input:
-        gtf=lambda wildcards: config["annotation"][wildcards.annot],
+        gtf="results/utilities/uncompress.{annot}.gtf",
         bam="results/minimap2/minimap.{annot}.sorted.bam"
     output:
-        uncompressed_file="results/utilities/uncompress.{annot}.gtf",
         final_file="results/stringtie/stringtie.{annot}.gtf"
     conda:
         "envs/stringtie.yaml"
@@ -131,10 +150,7 @@ rule stringtie:
         ram="10G"
     shell:
         """
-        if [[ {input.gtf} =~ \.gz$ ]]; then 
-            gunzip -c {input.gtf} > {output.uncompressed_file}
-        fi  
-        stringtie -L -G {output.uncompressed_file} -o {output.final_file} -p {threads} {input.bam}
+        stringtie -L -G {input.gtf} -o {output.final_file} -p {threads} {input.bam}
          """
 
 
@@ -180,8 +196,8 @@ rule flairbedToGenePred:
         "results/flair/flair.{annot}.gpf"
     shell:
         """
-        bedToGenePred {input} {params} \
-            | genePredToGtf file {params} {output}
+        bedToGenePred {input} {params}
+        genePredToGtf file {params} {output}
         """
 
 
@@ -222,34 +238,35 @@ rule talon_initialize_database:
         """
 
 
-# rule create_talon_configfile:
-#     params:
-#         id=config["sample_id"],
-#         description=config["sample_description"],
-#         ngs="Nanoseq",
-#         sam="results/talon/talon.{annot}_labeled.sam"
-#     output:
-#         "results/talon/talon.{annot}.config"
-#     shell:
-#        "echo {params.id},{params.description},{params.ngs},{params.sam} > {output}" 
+rule create_talon_configfile:
+    params:
+        id=config["sample_id"],
+        description=config["sample_description"],
+        ngs="Nanoseq",
+        sam="results/talon/talon.{annot}_labeled.sam"
+    output:
+        "results/talon/talon.{annot}.config"
+    shell:
+       "echo {params.id},{params.description},{params.ngs},{params.sam} > {output}" 
 
 
-# rule talon:
-#     input:
-#         config="results/talon/talon.{annot}.config",
-#         db="results/talon/talon.{annot}.db",
-#     output:
-#         "results/talon/talon.{annot}_talon_read_annot.tsv"
-#     conda:
-#         "envs/talon.yaml"
-#     params:
-#         build=config["reference_genome_name"],
-#         prefix="results/talon/talon.{annot}"
-#     shell:
-#         """
-#         ~/.local/bin/talon --f {input.config} --db {input.db} \
-#             --build {params.build} --o {params.prefix}
-#         """
+rule talon:
+    input:
+        config="results/talon/talon.{annot}.config",
+        db="results/talon/talon.{annot}.db",
+        sam="results/talon/talon.{annot}_labeled.sam"
+    output:
+        "results/talon/talon.{annot}_talon_read_annot.tsv"
+    conda:
+        "envs/talon.yaml"
+    params:
+        build=config["reference_genome_name"],
+        prefix="results/talon/talon.{annot}"
+    shell:
+        """
+        ~/.local/bin/talon --f {input.config} --db {input.db} \
+            --build {params.build} --o {params.prefix}
+        """
 
 
 rule talon_create_GTF:
@@ -316,7 +333,8 @@ rule gffcompare:
 # format values to use it as R input      
 rule parse_gffcompare:
     input:
-        expand("results/gffcompare/{software}.{annot}.stats", software=SOFTWARE, annot=config["annotation"])
+        expand("results/gffcompare/{software}.{annot}.stats", 
+                software=SOFTWARE, annot=config["annotation"])
     output:
         Sensitivity="results/gffcompare/Sensitivity.gffparse.tsv",
         Values="results/gffcompare/Values.gffparse.tsv"
