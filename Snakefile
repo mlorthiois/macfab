@@ -198,25 +198,45 @@ rule flairbedToGenePred:
 
 
 ###############################################################################
+rule install_talon:
+    output:
+        touch("results/utilities/talon_installed.txt")
+    conda:
+        "envs/talon.yaml"
+    shell:
+        """
+        if ! [ "$(command -v talon)" ]; then
+            curl -L https://github.com/mortazavilab/TALON/archive/v5.0.zip -o ./results/utilities/TALON-5.0.zip
+            cd results/utilities/
+            unzip -q TALON-5.0.zip && rm TALON-5.0.zip
+            cd TALON-5.0
+            pip install .
+            cd .. && rm -rf TALON-5.0
+        fi
+        """
+
+
 rule talon_label_reads:
     input:
+        bin="results/utilities/talon_installed.txt",
         sam="results/minimap2/minimap.{annot}.sam",
         fa=config["reference_path"]
     output:
-        "results/talon/talon.{annot}_labeled.sam"
+        temp("results/talon/talon.{annot}_labeled.sam")
     params:
         prefix="results/talon/talon.{annot}"
     conda:
         "envs/talon.yaml"
     shell:
         """
-        ~/.local/bin/talon_label_reads --f {input.sam} \
+        talon_label_reads --f {input.sam} \
             --g {input.fa} --o {params.prefix}
         """
 
 
 rule talon_initialize_database:
     input:
+        bin="results/utilities/talon_installed.txt",
         gtf="results/utilities/uncompress.{annot}.gtf"
     output:
         db="results/talon/talon.{annot}.db",
@@ -228,13 +248,15 @@ rule talon_initialize_database:
         "envs/talon.yaml"
     shell:
         """
-        ~/.local/bin/talon_initialize_database --f {input.gtf} \
+        talon_initialize_database --f {input.gtf} \
             --g {params.reference_genome_name} --a {params.annotation_name} \
             --idprefix {params.prefix} --o {params.prefix}
         """
 
 
 rule create_talon_configfile:
+    input:
+        "results/utilities/talon_installed.txt"
     params:
         id=config["sample_id"],
         description=config["sample_description"],
@@ -248,6 +270,7 @@ rule create_talon_configfile:
 
 rule talon:
     input:
+        bin="results/utilities/talon_installed.txt",
         config="results/talon/talon.{annot}.config",
         db="results/talon/talon.{annot}.db",
         sam="results/talon/talon.{annot}_labeled.sam"
@@ -260,13 +283,14 @@ rule talon:
         prefix="results/talon/talon.{annot}"
     shell:
         """
-        ~/.local/bin/talon --f {input.config} --db {input.db} \
+        talon --f {input.config} --db {input.db} \
             --build {params.build} --o {params.prefix}
         """
 
 
 rule talon_create_GTF:
     input:
+        bin="results/utilities/talon_installed.txt",
         db="results/talon/talon.{annot}.db"
     output:
         "results/talon/talon.{annot}.gtf"
@@ -278,7 +302,7 @@ rule talon_create_GTF:
         "envs/talon.yaml"
     shell:
         """
-        ~/.local/bin/talon_create_GTF --db {input.db} \
+        talon_create_GTF --db {input.db} \
             -b {params.ref_name} -a {params.annotation_name} --o {params.prefix} \
             && mv {params.prefix}_talon.gtf {output}
         """
