@@ -1,5 +1,5 @@
 name: R
 dependencies:
-- r
-- r-devtools
--  r-biocmanager 
+  - r
+  - r-biocmanager
+  - r-devtools

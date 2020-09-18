@@ -1,6 +1,6 @@
 import glob
 
-SOFTWARE=["stringtie", "flair", "talon"]
+SOFTWARE=["stringtie", "flair", "talon", "bambu"]
 wildcard_constraints:
     annot="[^./]+" # forbid wildcard "annot" to contain "/" or "." in order to ensure proper assignation
 
@@ -54,7 +54,8 @@ rule ungzip_genome_ref:
             shell("gunzip -c {input} > {output}")
         else:
             shell("cp {input} {output}")
-    
+
+
 rule ungzip_gtf:
     input:
         lambda wildcards: config["annotation"][wildcards.annot]
@@ -81,8 +82,6 @@ rule gtfToBed12:
         "paftools.js gff2bed {input} > {output}"
 
 
-
-
 ###############################################################################
 rule mapping:
     input:
@@ -104,37 +103,34 @@ rule mapping:
 
 
 ###############################################################################
-# a rule who installs a conda env with R, devtools et biocmanager
-# the script installs inside the R env bambu 0.2 (release URL) and BSgenome (needed by bambu)
 # ensure that the env is set before bambu, avoid conflicts when two bambu instances are launched at the same time
-# rule configR:
-#     output: touch("results/utilities/.R_config")
-#     conda:
-#         "envs/r.yaml"
-#     script:
-#         "scripts/install.R"
+rule install_bambu:
+    output: touch("results/utilities/.R_config")
+    conda:
+        "envs/r.yaml"
+    script:
+        "scripts/install_bambu.R"
 
 
-# analyze expression with bambu
 # asks for .R_config created by the R_config rule
-# a custom function is used to get the wildcards values ; see https://snakemake.readthedocs.io/en/stable/tutorial/advanced.html#step-3-input-functions
-# rule bambu:
-#     input:
-#         gtf=lambda wildcards: config["annotation"][wildcards.annot],
-#         bam="results/minimap2/minimap.{annot}.sorted.bam",
-#         fa=config["reference_path"],
-#         isConfig="results/utilities/.R_config"
-#     output:
-#         o_name="results/bambu/bambu.{annot}.gtf"
-#     shadow: # snakemake symlinks the data, runs the soft inside the shadow dir then move the output out of it and delete it
-#         "shallow"
-#     conda:
-#         "envs/r.yaml"
-#     threads:1
-#     resources:
-#         ram="30G"
-#     script:
-#         "scripts/bambu.R"
+rule bambu:
+    input:
+        gtf="results/utilities/uncompress.{annot}.gtf",
+        bam="results/minimap2/minimap.{annot}.sorted.bam",
+        fa="results/utilities/reference.dna.uncompressed.fa",
+        isConfig="results/utilities/.R_config"
+    output:
+        bambu_gtf="results/bambu/bambu.{annot}.gtf"
+    shadow: # snakemake symlinks the data, runs the soft inside the shadow dir then move the output out of it and delete it
+        "shallow"
+    conda:
+        "envs/r.yaml"
+    threads:1
+    resources:
+        ram="30G"
+    script:
+        "scripts/bambu.R"
+
 
 ###############################################################################
 rule stringtie:
@@ -307,6 +303,7 @@ rule only_seen_exons:
         grep $'\t'exon$'\t' {input.gtf} > {output.exon}
         bedtools intersect -u -s -split -a {output.exon} -b {input.bam} > {output.final}
         """
+
 
 # compare annotation to ref      
 rule gffcompare:
