@@ -227,6 +227,8 @@ rule talon_label_reads:
         prefix="results/talon/talon.{annot}"
     conda:
         "envs/talon.yaml"
+    shadow:
+        "shallow"
     shell:
         """
         talon_label_reads --f {input.sam} \
@@ -239,7 +241,9 @@ rule talon_initialize_database:
         bin="results/utilities/talon_installed.txt",
         gtf="results/utilities/uncompress.{annot}.gtf"
     output:
-        db="results/talon/talon.{annot}.db",
+        db="results/talon/talon.{annot}.db"
+    shadow:
+        "shallow"
     params:
         reference_genome_name = config["reference_genome_name"],
         prefix = "results/talon/talon.{annot}",
@@ -262,6 +266,8 @@ rule create_talon_configfile:
         description=config["sample_description"],
         ngs="Nanoseq",
         sam="results/talon/talon.{annot}_labeled.sam"
+    shadow:
+        "shallow"
     output:
         "results/talon/talon.{annot}.config"
     shell:
@@ -281,6 +287,8 @@ rule talon:
     params:
         build=config["reference_genome_name"],
         prefix="results/talon/talon.{annot}"
+    shadow:
+        "shallow"
     shell:
         """
         talon --f {input.config} --db {input.db} \
@@ -298,6 +306,8 @@ rule talon_create_GTF:
         annotation_name="{annot}",
         ref_name=config["reference_genome_name"],
         prefix="results/talon/talon.{annot}"
+    shadow:
+        "shallow"
     conda:
         "envs/talon.yaml"
     shell:
