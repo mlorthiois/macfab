@@ -21,4 +21,5 @@ snakemake --use-conda --cores [number] -j 5
 # Informations
 - The "cores" option set the max threads available to the rules.
 - Your gtf, fa and fatsq (reported in `config.yaml`) can be gzipped or not.
-- You can add other parameters in the command line ([description here](https://snakemake.readthedocs.io/en/stable/executing/cli.html))
+- You can add other parameters in the command line ([description here](https://snakemake.readthedocs.io/en/stable/executing/cli.html)).
+- You visualize via a [DAG](https://en.wikipedia.org/wiki/Directed_acyclic_graph) using `snakemake --dag -n ` and then [dedicated website](https://dreampuf.github.io/GraphvizOnline) to visualize ot.
