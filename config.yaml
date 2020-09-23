@@ -1,13 +1,13 @@
 # Your inputs here
 annotation:
-  GRCh38: "data/Homo_sapiens.GRCh38.101.gtf.chr21.gz"
-#  Ensembl: "data/Homo_sapiens.GRCh38.101.gtf.chr21.gz"
-fastq_path: "data/test.fq"
-reference_path: "data/Homo_sapiens.GRCh38.dna.chromosome.21.fa.gz"
+  CanFam3: "/groups/dog/data/canFam3/annotation/Ensembl99/Canis_familiaris.CanFam3.1.99.gtf"
+fastq_path: "/groups/dog/matthias/nanoseq/CML10/pass/guppy/fastq/CML10.fastq"
+reference_path: "/groups/dog/data/canFam3/sequence/softmasked/Canis_familiaris.CanFam3.1.72.dna_sm.toplevel.fa"
 
+paftools_js: "/home/genouest/cnrs_umr6290/fsassolas/paftools_test.js"
 # describe data here for talon
 # see https://github.com/mortazavilab/TALON#run_talon, --f option
 ## reference genome build
-reference_genome_name: "hg38"
-sample_id: "SGNex_HepG2_directRNA_replicate1_run3"
-sample_description: "hsa_tx"
+reference_genome_name: "CanFam3"
+sample_id: "CML10"
+sample_description: "CML10"

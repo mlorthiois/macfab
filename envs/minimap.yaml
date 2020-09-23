@@ -1,3 +1,5 @@
 name: minimap
+channels:
+  - bioconda
 dependencies:
-- minimap2
+  - minimap2

@@ -27,8 +27,6 @@ rule sam2bam:
     conda:
         "envs/samtools.yaml"
     threads:10
-    resources:
-        ram="6G"
     shell:
         "samtools view -b -@ {threads} {input} | samtools sort -o {output}"
 
@@ -76,10 +74,8 @@ rule gtfToBed12:
     conda:
         "envs/minimap.yaml" # defines a conda env to launch the command
     threads:1
-    resources:
-        ram="6G"
     shell:
-        "paftools.js gff2bed {input} > {output}"
+        config['paftools_js'] + " gff2bed {input} > {output}"
 
 
 ###############################################################################
@@ -92,9 +88,7 @@ rule mapping:
         "results/minimap2/minimap.{annot}.sam"
     conda:
         "envs/minimap.yaml"
-    threads:10
-    resources:
-        ram="60G"
+    threads: workflow.cores
     shell:
         """
         minimap2 -t {threads} -ax splice --MD \
@@ -126,8 +120,6 @@ rule bambu:
     conda:
         "envs/r.yaml"
     threads:1
-    resources:
-        ram="30G"
     script:
         "scripts/bambu.R"
 
@@ -141,13 +133,13 @@ rule stringtie:
         final_file="results/stringtie/stringtie.{annot}.gtf"
     conda:
         "envs/stringtie.yaml"
-    threads:6
-    resources:
-        ram="10G"
+    threads: workflow.cores
+    shadow:
+        "shallow"
     shell:
         """
         stringtie -L -G {input.gtf} -o {output.final_file} -p {threads} {input.bam}
-         """
+        """
 
 
 ###############################################################################
@@ -330,8 +322,6 @@ rule only_seen_exons:
     threads:1
     conda:
         "envs/bedtools.yaml"
-    resources:
-        ram="50G"
     shell:
         """
         grep $'\t'exon$'\t' {input.gtf} > {output.exon}
@@ -352,8 +342,6 @@ rule gffcompare:
     shadow: "shallow"
     params:
         prefix="{software}_{annot}",
-    resources:
-        ram="6G"
     shell:
          """
          gffcompare {input.test} -r {input.ref} -o {params.prefix}
@@ -370,8 +358,6 @@ rule parse_gffcompare:
         Sensitivity="results/gffcompare/Sensitivity.gffparse.tsv",
         Values="results/gffcompare/Values.gffparse.tsv"
     threads:1
-    resources:
-        ram="6G"
     script:
         "scripts/gffparse.py"
 
