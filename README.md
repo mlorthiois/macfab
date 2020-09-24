@@ -3,7 +3,8 @@
 # Installation
 ## Dependencies
     - Snakemake (needs to be installed through conda)
-    - (All tools are installed and maintained by Snakemake)
+    - A non-released version of paftools store in `/home/genouest/cnrs_umr6290/fsassolas/paftools_test.js` (until release >= 2.18)
+    - (All other tools are installed and maintained by Snakemake)
 
 ## Installation process
 Clone the git repo via `git clone git@gitlab.com:bioinfog/macfab.git` (or `git clone https://gitlab.com/bioinfog/macfab.git`).
