@@ -1,7 +1,7 @@
 # MAC pipeline : Mapping, Analysis, Comparison
 
 # Installation
-## Dependencies
+###### Dependencies
 
 - Snakemake (needs to be installed through conda)
 - A non-released version of paftools store in `/home/genouest/cnrs_umr6290/fsassolas/paftools_test.js` (until release >= 2.18)
