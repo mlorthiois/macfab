@@ -1,5 +1,6 @@
 # MAC pipeline : Mapping, Analysis, Comparison
 
+# DEMO #
 # Installation
 ###### Dependencies
 
