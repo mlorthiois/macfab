@@ -1,6 +1,7 @@
 .conda
 .snakemake
 .cache
-slurm*
+cDNA_Cupcake
 results
-rules
+SQANTI3
+slurm*

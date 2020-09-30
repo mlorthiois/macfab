@@ -4,7 +4,7 @@
 ## Dependencies
 
 - Snakemake (needs to be installed through conda)
-- A non-released version of paftools store in `/home/genouest/cnrs_umr6290/fsassolas/paftools_test.js` (until release >= 2.18)
+- A non-released version of paftools store in `/home/genouest/cnrs_umr6290/fsassolas/paftools_test.js` (until release of minimap2 >= 2.18)
 - (All other tools are installed and maintained by Snakemake)
 
 ## Installation process

@@ -11,11 +11,9 @@ localrules: all # never launch the all and the compact rules on the cluster
 rule all:
     input:
         results="results/gffcompare/Graph.recap.pdf",
-        #talon_tsv=expand("results/talon/talon.{annot}_talon_read_annot.tsv",
-        #                annot=config["annotation"])
-    threads:1
-    resources: # is used by snakemake as input for the sbatch command
-        ram="6G"
+        sqanti=expand("results/SQANTI3/{software}/{software}.{annot}_sqanti_report.pdf", 
+                        annot=config["annotation"], 
+                        software=SOFTWARE)
 
 
 ###############################################################################    
@@ -376,3 +374,66 @@ rule graph:
         ram="6G"
     script:
         "scripts/graphs.R"
+
+
+###########################################################################
+rule install_SQANTI3:
+    output:
+        touch("results/utilities/SQANTI3_installed.txt")
+    conda:
+        "envs/sqanti.yaml"
+    shell:
+        """
+        if ! [ -d "SQANTI3" ]; then
+            echo "Download SQANTI3"
+            git clone https://github.com/ConesaLab/SQANTI3.git
+        fi
+        if [ ! -f "./SQANTI3/utilities/gtfToGenePred" ]; then
+            echo "Download gtfToGenePred"
+            wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/gtfToGenePred -P ./SQANTI3/utilities/ -q
+            echo "Add +x right to gtfToGenePred"
+            chmod +x ./SQANTI3/utilities/gtfToGenePred 
+        fi
+        if [ ! -d "./cDNA_Cupcake" ]; then
+            echo "Download cDNA_Cupcake"
+            git clone https://github.com/Magdoll/cDNA_Cupcake.git
+            cd cDNA_Cupcake
+            python setup.py build
+            python setup.py install
+            cd ..
+        fi
+        """
+
+
+# Remove lines where strand="." for SQANTI3
+rule filter_strand_gtf:
+    input:
+        'results/{software}/{software}.{annot}.gtf'
+    output:
+        "results/{software}/{software}.{annot}_strand_corrected.gtf"
+    shell:
+        """
+        awk '$7!="."' {input} > {output}
+        """
+
+
+rule SQANTI3:
+    input:
+        isInstalled = "results/utilities/SQANTI3_installed.txt",
+        gtfQuery = "results/{software}/{software}.{annot}_strand_corrected.gtf",
+        gtfRef = "results/utilities/uncompress.{annot}.gtf",
+        fastaRef = 'results/utilities/reference.dna.uncompressed.fa',
+    output:
+        "results/SQANTI3/{software}/{software}.{annot}_sqanti_report.pdf"
+    params:
+        dir="results/SQANTI3/{software}/",
+        output_name="{software}.{annot}"
+    conda:
+        "envs/sqanti.yaml"
+    shell:
+        """
+        export PYTHONPATH=$PWD/cDNA_Cupcake/sequence/
+        python ./SQANTI3/sqanti3_qc.py {input.gtfQuery} \
+            {input.gtfRef} {input.fastaRef} \
+            --gtf -d {params.dir} -o {params.output_name}
+        """
