@@ -1,6 +1,5 @@
 # MAC pipeline : Mapping, Analysis, Comparison
 
-# DEMO #
 # Installation
 ###### Dependencies
 
@@ -26,3 +25,4 @@ snakemake --use-conda --cores [number] -j 5
 - Your gtf, fa and fatsq (reported in `config.yaml`) can be gzipped or not.
 - You can add other parameters in the command line ([description here](https://snakemake.readthedocs.io/en/stable/executing/cli.html)).
 - You visualize via a [DAG](https://en.wikipedia.org/wiki/Directed_acyclic_graph) using `snakemake --dag -n ` and then [dedicated website](https://dreampuf.github.io/GraphvizOnline) to visualize it.
+- GTF from bambu and stringtie are filtered (all transcripts that have a strand="." in the GTF are deleted from the GTF)
