@@ -10,10 +10,8 @@ localrules: all # never launch the all and the compact rules on the cluster
  # a simple rule to launch the full pipeline without specifiying the final rule (graph)
 rule all:
     input:
-        results="results/gffcompare/Graph.recap.pdf",
-        sqanti=expand("results/SQANTI3/{software}/{software}.{annot}_sqanti_report.pdf", 
-                        annot=config["annotation"], 
-                        software=SOFTWARE)
+        gffcompare_recap="results/gffcompare/Graph.recap.pdf",
+        sqanti_summary = "results/SQANTI3/SQANTI_report.pdf"
 
 
 ###############################################################################    
@@ -437,3 +435,30 @@ rule SQANTI3:
             {input.gtfRef} {input.fastaRef} \
             --gtf -d {params.dir} -o {params.output_name}
         """
+
+
+rule parse_SQANTI3:
+    input:
+        classification = expand("results/SQANTI3/{software}/{software}.{annot}_classification.txt", 
+                software=SOFTWARE, annot=config["annotation"])
+    output:
+        summary = "results/SQANTI3/summary.tsv"
+    params:
+        path = expand("results/SQANTI3/{software}/{software}.{annot}", software=SOFTWARE, annot=config["annotation"])
+    conda:
+        "envs/flair.yaml"
+    threads:1
+    script:
+        "scripts/SQANTIparse.py"
+
+
+rule SQANTI_report:
+    input:
+        summary = "results/SQANTI3/summary.tsv"
+    output:
+        report = "results/SQANTI3/SQANTI_report.pdf"
+    threads:1
+    conda:
+        "envs/r.yaml"
+    script:
+        "scripts/sqanti_report.R"
