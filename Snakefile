@@ -62,16 +62,29 @@ rule ungzip_gtf:
             shell("cp {input} {output}")
 
 
+rule install_paftools:
+    # Use custom paftools because last release doesn't work with GenBank GTF
+    output:
+        "results/utilities/paftools.js"
+    shell:
+        """
+        curl -L https://raw.githubusercontent.com/lh3/minimap2/58c2251b18e70cdaa2e8e2088899001cfe7d69ae/misc/paftools.js -o {output}
+        """
+
+
 rule gtfToBed12:
     input:
-        lambda wildcards: config["annotation"][wildcards.annot]
+        paftools = "results/utilities/paftools.js",
+        gtf = lambda wildcards: config["annotation"][wildcards.annot]
     output:
         "results/gtfToBed12/{annot}.converted.bed12"
     conda:
-        "envs/minimap.yaml" # defines a conda env to launch the command
+        "envs/minimap.yaml"
     threads:1
     shell:
-        config['paftools_js'] + " gff2bed {input} > {output}"
+        """
+        {input.paftools} gff2bed {input.gtf} > {output}
+        """
 
 
 ###############################################################################
@@ -355,11 +368,11 @@ rule parse_gffcompare:
         Values="results/gffcompare/Values.gffparse.tsv"
     threads:1
     script:
-        "scripts/gffparse.py"
+        "scripts/gffcompare_parse.py"
 
 
 # plot the expected results with ggplot2
-rule graph:
+rule gffcompare_report:
     input:
         Sensitivity="results/gffcompare/Sensitivity.gffparse.tsv",
         Values="results/gffcompare/Values.gffparse.tsv"
@@ -371,7 +384,7 @@ rule graph:
     resources:
         ram="6G"
     script:
-        "scripts/graphs.R"
+        "scripts/gffcompare_report.R"
 
 
 ###########################################################################
@@ -411,6 +424,7 @@ rule filter_strand_gtf:
         "results/{software}/{software}.{annot}_strand_corrected.gtf"
     shell:
         """
+        sed -i 's/*/./g' {input}
         awk '$7!="."' {input} > {output}
         """
 
@@ -422,7 +436,9 @@ rule SQANTI3:
         gtfRef = "results/utilities/uncompress.{annot}.gtf",
         fastaRef = 'results/utilities/reference.dna.uncompressed.fa',
     output:
-        "results/SQANTI3/{software}/{software}.{annot}_sqanti_report.pdf"
+        pdf = "results/SQANTI3/{software}/{software}.{annot}_sqanti_report.pdf",
+        classification = "results/SQANTI3/{software}/{software}.{annot}_classification.txt",
+        junction = "results/SQANTI3/{software}/{software}.{annot}_junctions.txt",
     params:
         dir="results/SQANTI3/{software}/",
         output_name="{software}.{annot}"
@@ -440,6 +456,8 @@ rule SQANTI3:
 rule parse_SQANTI3:
     input:
         classification = expand("results/SQANTI3/{software}/{software}.{annot}_classification.txt", 
+                software=SOFTWARE, annot=config["annotation"]),
+        junctions = expand("results/SQANTI3/{software}/{software}.{annot}_junctions.txt", 
                 software=SOFTWARE, annot=config["annotation"])
     output:
         summary = "results/SQANTI3/summary.tsv"
@@ -449,7 +467,7 @@ rule parse_SQANTI3:
         "envs/flair.yaml"
     threads:1
     script:
-        "scripts/SQANTIparse.py"
+        "scripts/sqanti_parse.py"
 
 
 rule SQANTI_report:

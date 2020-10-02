@@ -4,7 +4,6 @@ annotation:
 fastq_path: "/groups/dog/matthias/nanoseq/CML10/pass/guppy/fastq/CML10.fastq"
 reference_path: "/groups/dog/data/canFam3/sequence/softmasked/Canis_familiaris.CanFam3.1.72.dna_sm.toplevel.fa"
 
-paftools_js: "/home/genouest/cnrs_umr6290/fsassolas/paftools_test.js"
 # describe data here for talon
 # see https://github.com/mortazavilab/TALON#run_talon, --f option
 ## reference genome build
