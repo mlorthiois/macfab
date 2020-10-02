@@ -70,7 +70,7 @@ junc_m %>% group_by(sample) %>%
             axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0)),
             legend.text = element_text(size=8),
             legend.text.align = 0) +
-        ggtitle("Distribution of structural isoform classification") +
+        ggtitle("Distribution of junction classification") +
         guides(fill = guide_legend(title.position = "top"))
 
 dev.off()
