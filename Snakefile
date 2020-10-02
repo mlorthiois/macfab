@@ -69,6 +69,7 @@ rule install_paftools:
     shell:
         """
         curl -L https://raw.githubusercontent.com/lh3/minimap2/58c2251b18e70cdaa2e8e2088899001cfe7d69ae/misc/paftools.js -o {output}
+        chmod +x {output}
         """
 
 
