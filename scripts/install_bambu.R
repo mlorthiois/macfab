@@ -1,5 +1,15 @@
 if (!requireNamespace("devtools", quietly = TRUE))
-    install.packages("devtools")
+    install.packages("devtools", repos="http://cran.irsn.fr/", quiet = TRUE)
+
+if (!requireNamespace("reshape2", quietly = TRUE))
+    install.packages("reshape2", repos="http://cran.irsn.fr/", quiet = TRUE)
+
+if (!requireNamespace("tidyverse", quietly = TRUE))
+	install.packages("tidyverse", repos="http://cran.irsn.fr/", quiet = TRUE)
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager", quiet = TRUE)
+
 
 if (!"bambu" %in% installed.packages()){
     print("Installation of bambu")
@@ -8,8 +18,6 @@ if (!"bambu" %in% installed.packages()){
     print("bambu already installed")
 }
 
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
 
 if (!"BSgenome" %in% installed.packages()){
     "Installation of BSGenome"

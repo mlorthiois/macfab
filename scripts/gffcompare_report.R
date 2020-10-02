@@ -1,6 +1,3 @@
-if (!requireNamespace("tidyverse", quietly = TRUE))
-	install.packages("tidyverse")
-
 library(ggplot2)
 
 Sensitivity.gffparse <- read.delim(snakemake@input[["Sensitivity"]])

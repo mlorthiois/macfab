@@ -3,3 +3,5 @@ dependencies:
   - r
   - r-biocmanager
   - r-devtools
+  - r-tidyverse
+  - r-reshape2

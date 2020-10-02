@@ -1,8 +1,4 @@
-if (!requireNamespace("tidyverse", quietly = TRUE))
-	install.packages("tidyverse", repos="cran.univ-lyon1.fr")
 library("tidyverse")
-if (!requireNamespace("reshape2", quietly = TRUE))
-    install.packages("reshape2")
 require("reshape2")
 
 summary <- read.csv(snakemake@input[["summary"]], sep="\t")
