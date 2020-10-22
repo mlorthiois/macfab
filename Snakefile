@@ -419,7 +419,7 @@ rule install_SQANTI3:
 # Remove lines where strand="." for SQANTI3
 rule filter_strand_gtf:
     input:
-        'results/{software}/{software}.{annot}.gtf'
+        'results/{software}/{software}.{annot}.filtered.gtf'
     output:
         "results/{software}/{software}.{annot}_strand_corrected.gtf"
     shell:
