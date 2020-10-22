@@ -1,7 +1,7 @@
 #!/bin/bash
     	
 #SBATCH --job-name=macfab_analysis
-#SBATCH --chdir=/home/genouest/cnrs_umr6290/mlorthiois/workspace/macfab/
+#SBATCH --chdir=/home/genouest/cnrs_umr6290/mlorthiois/workspace/macfab_simul/
 #SBATCH --nodelist=cl1n036
 #SBATCH --cpus-per-task=30
 #SBATCH --mem=50G

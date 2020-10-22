@@ -1,12 +1,12 @@
 # Your inputs here
 annotation:
   CanFam3: "/groups/dog/data/canFam3/annotation/Ensembl99/Canis_familiaris.CanFam3.1.99.gtf"
-fastq_path: "/groups/dog/matthias/nanoseq/CML10/pass/guppy/fastq/CML10.fastq"
+fastq_path: "/home/genouest/cnrs_umr6290/mlorthiois/workspace/NanoSim/simulated_aligned_reads.fastq"
 reference_path: "/groups/dog/data/canFam3/sequence/softmasked/Canis_familiaris.CanFam3.1.72.dna_sm.toplevel.fa"
 
 # describe data here for talon
 # see https://github.com/mortazavilab/TALON#run_talon, --f option
 ## reference genome build
 reference_genome_name: "CanFam3"
-sample_id: "CML10"
-sample_description: "CML10"
+sample_id: "CML10_simu"
+sample_description: "CML10_simu"
