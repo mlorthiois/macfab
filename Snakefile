@@ -1,6 +1,6 @@
 import glob
 
-SOFTWARE=["stringtie", "flair", "talon", "bambu"]
+SOFTWARE=["stringtie", "talon", "flair", "bambu"]
 wildcard_constraints:
     annot="[^./]+" # forbid wildcard "annot" to contain "/" or "." in order to ensure proper assignation
 
@@ -23,8 +23,9 @@ rule sam2bam:
     conda:
         "envs/samtools.yaml"
     threads:10
+    log: "logs/{annot}_sam2bam.log"
     shell:
-        "samtools view -b -@ {threads} {input} | samtools sort -o {output}"
+        "samtools view -b -@ {threads} {input} | samtools sort -o {output} 2> {log}"
 
 
 rule bam2bed12:
@@ -34,8 +35,9 @@ rule bam2bed12:
         "results/minimap2/minimap.{annot}.sorted.converted.bed12"
     conda:
         "envs/flair.yaml"
+    log: "logs/{annot}_bam2bed12.log"
     shell:
-        "bamToBed -bed12 -i {input} > {output}"
+        "bamToBed -bed12 -i {input} > {output} 2> {log}"
 
 
 rule ungzip_genome_ref:
@@ -43,6 +45,20 @@ rule ungzip_genome_ref:
         config["reference_path"]
     output:
         temp("results/utilities/reference.dna.uncompressed.fa")
+    log: "logs/unzip_genome_ref.log"
+    run:
+        if input[0][-2:]=="gz":
+            shell("gunzip -c {input} > {output}")
+        else:
+            shell("cp {input} {output}")
+
+
+rule ungzip_query_fastq:
+    input:
+        config["fastq_path"]
+    output:
+        "results/utilities/Query.uncompressed.fastq"
+    log: "logs/unzip_query_fastq.log"
     run:
         if input[0][-2:]=="gz":
             shell("gunzip -c {input} > {output}")
@@ -55,6 +71,7 @@ rule ungzip_gtf:
         lambda wildcards: config["annotation"][wildcards.annot]
     output:
         temp("results/utilities/uncompress.{annot}.gtf")
+    log: "logs/{annot}_unzip_gtf.log"
     run:
         if input[0][-2:]=="gz":
             shell("gunzip -c {input} > {output}")
@@ -66,10 +83,11 @@ rule install_paftools:
     # Use custom paftools because last release doesn't work with GenBank GTF
     output:
         "results/utilities/paftools.js"
+    log: "logs/install_paftools.log"
     shell:
         """
-        curl -L https://raw.githubusercontent.com/lh3/minimap2/58c2251b18e70cdaa2e8e2088899001cfe7d69ae/misc/paftools.js -o {output}
-        chmod +x {output}
+        curl -L https://raw.githubusercontent.com/lh3/minimap2/58c2251b18e70cdaa2e8e2088899001cfe7d69ae/misc/paftools.js -o {output} 2> {log}
+        chmod +x {output} 2> {log}
         """
 
 
@@ -81,28 +99,30 @@ rule gtfToBed12:
         "results/gtfToBed12/{annot}.converted.bed12"
     conda:
         "envs/minimap.yaml"
+    log: "logs/{annot}_gtfToBed12.log"
     threads:1
     shell:
         """
-        {input.paftools} gff2bed {input.gtf} > {output}
+        {input.paftools} gff2bed {input.gtf} > {output} 2> {log}
         """
 
 
 ###############################################################################
 rule mapping:
     input:
-        fastq=config["fastq_path"],
+        fastq="results/utilities/Query.uncompressed.fastq",
         bed="results/gtfToBed12/{annot}.converted.bed12",
         fa=config["reference_path"]
     output:
         "results/minimap2/minimap.{annot}.sam"
     conda:
         "envs/minimap.yaml"
+    log: "logs/{annot}_mapping.log"
     threads: workflow.cores
     shell:
         """
         minimap2 -t {threads} -ax splice --MD \
-        --junc-bed {input.bed} {input.fa} {input.fastq} > {output}
+        --junc-bed {input.bed} {input.fa} {input.fastq} > {output} 2> {log}
         """
 
 
@@ -112,6 +132,7 @@ rule install_bambu:
     output: touch("results/utilities/.R_config")
     conda:
         "envs/r.yaml"
+    log: "logs/install_bambu.log"
     script:
         "scripts/install_bambu.R"
 
@@ -127,6 +148,7 @@ rule bambu:
         bambu_gtf="results/bambu/bambu.{annot}.gtf"
     shadow: # snakemake symlinks the data, runs the soft inside the shadow dir then move the output out of it and delete it
         "shallow"
+    log: "logs/{annot}_bambu.log"
     conda:
         "envs/r.yaml"
     threads:1
@@ -143,12 +165,13 @@ rule stringtie:
         final_file="results/stringtie/stringtie.{annot}.gtf"
     conda:
         "envs/stringtie.yaml"
-    threads: workflow.cores
+    threads: workflow.cores * 0.9
+    log: "logs/{annot}_stringtie.log"
     shadow:
         "shallow"
     shell:
         """
-        stringtie -L -G {input.gtf} -o {output.final_file} -p {threads} {input.bam}
+        stringtie -L -G {input.gtf} -o {output.final_file} -p {threads} {input.bam} 2> {log}
         """
 
 
@@ -162,42 +185,35 @@ rule flair_correct:
         "results/flair/flair.{annot}_all_corrected.bed"
     params:
         "results/flair/flair.{annot}"
+    log: "logs/{annot}_flair_correct.log"
     conda:
         "envs/flair.yaml"
     shell:
-        "flair.py correct -q {input.query} -g {input.fa} -f {input.gtf} -o {params}"
+        "flair.py correct -q {input.query} -g {input.fa} -f {input.gtf} -o {params} 2> {log}"
 
 
 rule flair_collapse:
     input:
         fa="results/utilities/reference.dna.uncompressed.fa",
-        reads=config["fastq_path"],
-        query="results/flair/flair.{annot}_all_corrected.bed"
+        reads="results/utilities/Query.uncompressed.fastq",
+        query="results/flair/flair.{annot}_all_corrected.bed",
+        ref_gtf = "results/utilities/uncompress.{annot}.gtf"
     output:
-        "results/flair/flair.collapse.{annot}.isoforms.bed"
+        "results/flair/flair.{annot}.gtf"
     params:
         "results/flair/flair.collapse.{annot}"
+    log: 
+        "logs/{annot}_flair_collapse.log"
+    threads:
+        workflow.cores * 0.75
     conda:
         "envs/flair.yaml"
     shell:
-        "flair.py collapse -g {input.fa} -r {input.reads} -q {input.query} -o {params}"
-
-
-rule flairbedToGenePred:
-    input:
-        "results/flair/flair.collapse.{annot}.isoforms.bed"
-    output:
-        "results/flair/flair.{annot}.gtf"
-    conda:
-        "envs/bedToGenePred.yaml"
-    params:
-        "results/flair/flair.{annot}.gpf"
-    shell:
         """
-        bedToGenePred {input} {params}
-        genePredToGtf file {params} {output}
+        flair.py collapse -t {threads} -g {input.fa} -r {input.reads} -q {input.query} -o {params} -f {input.ref_gtf}
+        mv {params}.isoforms.gtf {output} 2> {log}
         """
-
+        
 
 ###############################################################################
 rule install_talon:
@@ -205,6 +221,7 @@ rule install_talon:
         touch("results/utilities/talon_installed.txt")
     conda:
         "envs/talon.yaml"
+    log: "logs/install_talon.log"
     shell:
         """
         if ! [ "$(command -v talon)" ]; then
@@ -214,7 +231,7 @@ rule install_talon:
             cd TALON-5.0
             pip install .
             cd .. && rm -rf TALON-5.0
-        fi
+        fi 2> {log}
         """
 
 
@@ -224,17 +241,18 @@ rule talon_label_reads:
         sam="results/minimap2/minimap.{annot}.sam",
         fa=config["reference_path"]
     output:
-        temp("results/talon/talon.{annot}_labeled.sam")
+        "results/talon/talon.{annot}_labeled.sam"
     params:
         prefix="results/talon/talon.{annot}"
     conda:
         "envs/talon.yaml"
+    log: "logs/{annot}_talon_label_reads.log"
     shadow:
         "shallow"
     shell:
         """
         talon_label_reads --f {input.sam} \
-            --g {input.fa} --o {params.prefix}
+            --g {input.fa} --o {params.prefix} 2> {log}
         """
 
 
@@ -252,11 +270,12 @@ rule talon_initialize_database:
         annotation_name = "{annot}"
     conda:
         "envs/talon.yaml"
+    log: "logs/{annot}_talon_initialize_database.log"
     shell:
         """
         talon_initialize_database --f {input.gtf} \
             --g {params.reference_genome_name} --a {params.annotation_name} \
-            --idprefix {params.prefix} --o {params.prefix}
+            --idprefix {params.prefix} --o {params.prefix} 2> {log}
         """
 
 
@@ -270,10 +289,11 @@ rule create_talon_configfile:
         sam="results/talon/talon.{annot}_labeled.sam"
     shadow:
         "shallow"
+    log: "logs/{annot}_create_talon_configfile.log"
     output:
         "results/talon/talon.{annot}.config"
     shell:
-       "echo {params.id},{params.description},{params.ngs},{params.sam} > {output}" 
+       "echo {params.id},{params.description},{params.ngs},{params.sam} > {output} 2> {log}" 
 
 
 rule talon:
@@ -286,6 +306,7 @@ rule talon:
         "results/talon/talon.{annot}_talon_read_annot.tsv"
     conda:
         "envs/talon.yaml"
+    log: "logs/{annot}_talon.log"
     params:
         build=config["reference_genome_name"],
         prefix="results/talon/talon.{annot}"
@@ -294,7 +315,7 @@ rule talon:
     shell:
         """
         talon --f {input.config} --db {input.db} \
-            --build {params.build} --o {params.prefix}
+            --build {params.build} --o {params.prefix} 2> {log}
         """
 
 
@@ -308,6 +329,7 @@ rule talon_create_GTF:
         annotation_name="{annot}",
         ref_name=config["reference_genome_name"],
         prefix="results/talon/talon.{annot}"
+    log: "logs/{annot}_talon_create_GTF.log"
     shadow:
         "shallow"
     conda:
@@ -316,37 +338,49 @@ rule talon_create_GTF:
         """
         talon_create_GTF --db {input.db} \
             -b {params.ref_name} -a {params.annotation_name} --o {params.prefix} \
-            && mv {params.prefix}_talon.gtf {output}
+            && mv {params.prefix}_talon.gtf {output} 2> {log}
         """
 
 
 ###############################################################################
 # intersect gtf with bam to keep only expressed genes and not those from the annotation        
-rule only_seen_exons:
+rule filter_gtf:
     input:
         gtf="results/{software}/{software}.{annot}.gtf",
         bam="results/minimap2/minimap.{annot}.sorted.bam"
     output:
-        final=temp("results/gffcompare/{software}.{annot}.filtered.gtf"),
-        exon=temp("results/gffcompare/{software}.{annot}.EO.gtf")
+        final="results/{software}/{software}.{annot}.filtered.gtf",
+    params:
+        temp = "results/{software}/{software}.{annot}.EO.gtf"
     threads:1
+    log: "logs/only_seen_exons_{software}.{annot}.log"
     conda:
         "envs/bedtools.yaml"
     shell:
         """
-        grep $'\t'exon$'\t' {input.gtf} > {output.exon}
-        bedtools intersect -u -s -split -a {output.exon} -b {input.bam} > {output.final}
+        sed 's/*/./g' {input.gtf} | awk '$3 =="exon" && $7!="." && $5>$4' > {params.temp}
+        bedtools intersect -u -s -split -a {params.temp} -b {input.bam} > {output.final} 2> {log}
         """
 
+# Talon find some transcripts in 2 chr/other strand, remove the duplicate
+rule correct_gtf:
+    input:
+        "results/{software}/{software}.{annot}.filtered.gtf"
+    output:
+        "results/{software}/{software}.{annot}.filtered_corrected.gtf"
+    script:
+        "scripts/correct_gtf.py"
 
+###############################################################################
 # compare annotation to ref      
 rule gffcompare:
     input:
-        test="results/gffcompare/{software}.{annot}.filtered.gtf",
+        test="results/{software}/{software}.{annot}.filtered_corrected.gtf",
         ref="results/utilities/uncompress.{annot}.gtf"
     output:
         result="results/gffcompare/{software}.{annot}.stats"
     threads:1
+    log: "logs/gffcompare_{software}.{annot}.log"
     conda:
         "envs/gffcompare.yaml"
     shadow: "shallow"
@@ -355,7 +389,7 @@ rule gffcompare:
     shell:
          """
          gffcompare {input.test} -r {input.ref} -o {params.prefix}
-         mv {params.prefix}.stats {output.result}
+         mv {params.prefix}.stats {output.result} 2> {log}
          """
 
 
@@ -368,6 +402,7 @@ rule parse_gffcompare:
         Sensitivity="results/gffcompare/Sensitivity.gffparse.tsv",
         Values="results/gffcompare/Values.gffparse.tsv"
     threads:1
+    log: "logs/parse_gffcompare.log"
     script:
         "scripts/gffcompare_parse.py"
 
@@ -380,6 +415,7 @@ rule gffcompare_report:
     output:
         "results/gffcompare/Graph.recap.pdf"
     threads:1
+    log: "logs/gffcompare_report.log"
     conda:
         "envs/r.yaml"
     resources:
@@ -394,6 +430,7 @@ rule install_SQANTI3:
         touch("results/utilities/SQANTI3_installed.txt")
     conda:
         "envs/sqanti.yaml"
+    log: "logs/install_SQANTI3.log"
     shell:
         """
         if ! [ -d "SQANTI3" ]; then
@@ -418,22 +455,23 @@ rule install_SQANTI3:
 
 
 # Remove lines where strand="." for SQANTI3
-rule filter_strand_gtf:
-    input:
-        'results/{software}/{software}.{annot}.filtered.gtf'
-    output:
-        "results/{software}/{software}.{annot}_strand_corrected.gtf"
-    shell:
-        """
-        sed -i 's/*/./g' {input}
-        awk '$7!="."' {input} > {output}
-        """
+# rule filter_strand_gtf:
+#     input:
+#         'results/{software}/{software}.{annot}.filtered_corrected.gtf'
+#     output:
+#         "results/{software}/{software}.{annot}_strand_corrected.gtf"
+#     log: "logs/filter_strand_gtf_{software}.{annot}.log"
+#     shell:
+#         """
+#         sed -i 's/*/./g' {input}
+#         awk '$7!="."' {input} > {output}
+#         """
 
 
 rule SQANTI3:
     input:
         isInstalled = "results/utilities/SQANTI3_installed.txt",
-        gtfQuery = "results/{software}/{software}.{annot}_strand_corrected.gtf",
+        gtfQuery = "results/{software}/{software}.{annot}.filtered_corrected.gtf",
         gtfRef = "results/utilities/uncompress.{annot}.gtf",
         fastaRef = 'results/utilities/reference.dna.uncompressed.fa',
     output:
@@ -445,12 +483,13 @@ rule SQANTI3:
         output_name="{software}.{annot}"
     conda:
         "envs/sqanti.yaml"
+    log: "logs/SQANTI3_{software}.{annot}.log"
     shell:
         """
         export PYTHONPATH=$PWD/cDNA_Cupcake/sequence/
         python ./SQANTI3/sqanti3_qc.py {input.gtfQuery} \
             {input.gtfRef} {input.fastaRef} \
-            --gtf -d {params.dir} -o {params.output_name}
+            --gtf -d {params.dir} -o {params.output_name} 2> {log}
         """
 
 
@@ -466,6 +505,7 @@ rule parse_SQANTI3:
         path = expand("results/SQANTI3/{software}/{software}.{annot}", software=SOFTWARE, annot=config["annotation"])
     conda:
         "envs/flair.yaml"
+    log: "logs/parse_SQANTI3.log"
     threads:1
     script:
         "scripts/sqanti_parse.py"
@@ -477,6 +517,7 @@ rule SQANTI_report:
     output:
         report = "results/SQANTI3/SQANTI_report.pdf"
     threads:1
+    log: "logs/SQANTI_report.log"
     conda:
         "envs/r.yaml"
     script:
