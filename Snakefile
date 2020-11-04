@@ -235,27 +235,6 @@ rule install_talon:
         """
 
 
-rule talon_label_reads:
-    input:
-        bin="results/utilities/talon_installed.txt",
-        sam="results/minimap2/minimap.{annot}.sam",
-        fa=config["reference_path"]
-    output:
-        "results/talon/talon.{annot}_labeled.sam"
-    params:
-        prefix="results/talon/talon.{annot}"
-    conda:
-        "envs/talon.yaml"
-    log: "logs/{annot}_talon_label_reads.log"
-    shadow:
-        "shallow"
-    shell:
-        """
-        talon_label_reads --f {input.sam} \
-            --g {input.fa} --o {params.prefix} 2> {log}
-        """
-
-
 rule talon_initialize_database:
     input:
         bin="results/utilities/talon_installed.txt",
@@ -267,21 +246,48 @@ rule talon_initialize_database:
     params:
         reference_genome_name = config["reference_genome_name"],
         prefix = "results/talon/talon.{annot}",
-        annotation_name = "{annot}"
+        annotation_name = "{annot}_annot"
     conda:
         "envs/talon.yaml"
     log: "logs/{annot}_talon_initialize_database.log"
     shell:
         """
         talon_initialize_database --f {input.gtf} \
-            --g {params.reference_genome_name} --a {params.annotation_name} \
-            --idprefix {params.prefix} --o {params.prefix} 2> {log}
+            --g {params.reference_genome_name} \
+            --a {params.annotation_name} \
+            --o {params.prefix} 2> {log}
+        """
+
+
+rule talon_label_reads:
+    input:
+        bin="results/utilities/talon_installed.txt",
+        sam="results/minimap2/minimap.{annot}.sam",
+        fa="results/utilities/reference.dna.uncompressed.fa"
+    output:
+        "results/talon/talon.{annot}_labeled.sam"
+    params:
+        prefix="results/talon/talon.{annot}"
+    conda:
+        "envs/talon.yaml"
+    log: "logs/{annot}_talon_label_reads.log"
+    shadow:
+        "shallow"
+    threads: workflow.cores * 0.5
+    shell:
+        """
+        talon_label_reads --f {input.sam} \
+            --g {input.fa} \
+            --t {threads} \
+            --o {params.prefix} 2> {log}
         """
 
 
 rule create_talon_configfile:
     input:
         "results/utilities/talon_installed.txt"
+    output:
+        "results/talon/talon.{annot}.config.csv"
     params:
         id=config["sample_id"],
         description=config["sample_description"],
@@ -290,43 +296,67 @@ rule create_talon_configfile:
     shadow:
         "shallow"
     log: "logs/{annot}_create_talon_configfile.log"
-    output:
-        "results/talon/talon.{annot}.config"
     shell:
        "echo {params.id},{params.description},{params.ngs},{params.sam} > {output} 2> {log}" 
 
 
 rule talon:
     input:
-        bin="results/utilities/talon_installed.txt",
-        config="results/talon/talon.{annot}.config",
+        config="results/talon/talon.{annot}.config.csv",
         db="results/talon/talon.{annot}.db",
         sam="results/talon/talon.{annot}_labeled.sam"
     output:
-        "results/talon/talon.{annot}_talon_read_annot.tsv"
-    conda:
-        "envs/talon.yaml"
-    log: "logs/{annot}_talon.log"
+        "results/talon/talon.{annot}_QC.log"
     params:
         build=config["reference_genome_name"],
         prefix="results/talon/talon.{annot}"
+    conda:
+        "envs/talon.yaml"
+    log: "logs/{annot}_talon.log"
     shadow:
         "shallow"
     shell:
         """
-        talon --f {input.config} --db {input.db} \
-            --build {params.build} --o {params.prefix} 2> {log}
+        talon --f {input.config} \
+            --db {input.db} \
+            --build {params.build} \
+            --o {params.prefix} 2> {log}
+        """
+
+
+rule filter_transcripts:
+    input:
+        db="results/talon/talon.{annot}.db",
+        log="results/talon/talon.{annot}_QC.log",
+        annot="results/utilities/uncompress.{annot}.gtf"
+    output:
+        "results/talon/talon.{annot}_filtered_transcripts.csv"
+    log: "logs/talon_filter_transcripts_{annot}.log"
+    params:
+        annot="{annot}_annot",
+        dataset=config["sample_id"]
+    shadow:
+        "shallow"
+    conda:
+        "envs/talon.yaml"
+    shell:
+        """
+        talon_filter_transcripts \
+            --db {input.db} \
+            -a {params.annot} \
+            --o {output} 2> {log}
         """
 
 
 rule talon_create_GTF:
     input:
         bin="results/utilities/talon_installed.txt",
-        db="results/talon/talon.{annot}.db"
+        db="results/talon/talon.{annot}.db",
+        csv="results/talon/talon.{annot}_filtered_transcripts.csv"
     output:
         "results/talon/talon.{annot}.gtf"
     params:
-        annotation_name="{annot}",
+        annotation_name="{annot}_annot",
         ref_name=config["reference_genome_name"],
         prefix="results/talon/talon.{annot}"
     log: "logs/{annot}_talon_create_GTF.log"
@@ -337,8 +367,11 @@ rule talon_create_GTF:
     shell:
         """
         talon_create_GTF --db {input.db} \
-            -b {params.ref_name} -a {params.annotation_name} --o {params.prefix} \
-            && mv {params.prefix}_talon.gtf {output} 2> {log}
+            --whitelist {input.csv} \
+            --build {params.ref_name} \
+            -a {params.annotation_name} \
+            --o {params.prefix} && \
+        mv {params.prefix}_talon.gtf {output} 2> {log}
         """
 
 
@@ -452,20 +485,6 @@ rule install_SQANTI3:
             cd ..
         fi
         """
-
-
-# Remove lines where strand="." for SQANTI3
-# rule filter_strand_gtf:
-#     input:
-#         'results/{software}/{software}.{annot}.filtered_corrected.gtf'
-#     output:
-#         "results/{software}/{software}.{annot}_strand_corrected.gtf"
-#     log: "logs/filter_strand_gtf_{software}.{annot}.log"
-#     shell:
-#         """
-#         sed -i 's/*/./g' {input}
-#         awk '$7!="."' {input} > {output}
-#         """
 
 
 rule SQANTI3:
