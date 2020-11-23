@@ -25,7 +25,10 @@ rule sam2bam:
     threads:10
     log: "logs/{annot}_sam2bam.log"
     shell:
-        "samtools view -b -@ {threads} {input} | samtools sort -o {output} 2> {log}"
+        """
+        samtools view -b -@ {threads} {input} | samtools sort -o {output}
+        samtools index -@ {threads} {output}
+        """
 
 
 rule bam2bed12:
@@ -114,7 +117,7 @@ rule mapping:
         bed="results/gtfToBed12/{annot}.converted.bed12",
         fa=config["reference_path"]
     output:
-        "results/minimap2/minimap.{annot}.sam"
+        temp("results/minimap2/minimap.{annot}.sam")
     conda:
         "envs/minimap.yaml"
     log: "logs/{annot}_mapping.log"
