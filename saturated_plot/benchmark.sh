@@ -58,7 +58,7 @@ for sample in $samples; do
     cd ..
 done
 
-chmod +x parse_isoforms.sh && ./parse_isoforms.sh
+chmod +x parse_csv.sh && ./parse_csv.sh
 
 conda activate tidyverse
 
