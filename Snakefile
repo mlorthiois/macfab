@@ -35,7 +35,7 @@ rule bam2bed12:
     input:
         "results/minimap2/minimap.{annot}.sorted.bam"
     output:
-        "results/minimap2/minimap.{annot}.sorted.converted.bed12"
+        temp("results/minimap2/minimap.{annot}.sorted.converted.bed12")
     conda:
         "envs/flair.yaml"
     log: "logs/{annot}_bam2bed12.log"
@@ -60,7 +60,7 @@ rule ungzip_query_fastq:
     input:
         config["fastq_path"]
     output:
-        "results/utilities/Query.uncompressed.fastq"
+        temp("results/utilities/Query.uncompressed.fastq")
     log: "logs/unzip_query_fastq.log"
     run:
         if input[0][-2:]=="gz":
@@ -99,7 +99,7 @@ rule gtfToBed12:
         paftools = "results/utilities/paftools.js",
         gtf = lambda wildcards: config["annotation"][wildcards.annot]
     output:
-        "results/gtfToBed12/{annot}.converted.bed12"
+        temp("results/gtfToBed12/{annot}.converted.bed12")
     conda:
         "envs/minimap.yaml"
     log: "logs/{annot}_gtfToBed12.log"
@@ -185,7 +185,7 @@ rule flair_correct:
         fa="results/utilities/reference.dna.uncompressed.fa",
         gtf="results/utilities/uncompress.{annot}.gtf"
     output:
-        "results/flair/flair.{annot}_all_corrected.bed"
+        temp("results/flair/flair.{annot}_all_corrected.bed")
     params:
         "results/flair/flair.{annot}"
     log: "logs/{annot}_flair_correct.log"
@@ -268,7 +268,7 @@ rule talon_label_reads:
         sam="results/minimap2/minimap.{annot}.sam",
         fa="results/utilities/reference.dna.uncompressed.fa"
     output:
-        "results/talon/talon.{annot}_labeled.sam"
+        temp("results/talon/talon.{annot}_labeled.sam")
     params:
         prefix="results/talon/talon.{annot}"
     conda:
