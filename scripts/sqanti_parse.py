@@ -9,15 +9,21 @@ columns_name = ['sample', 'novel_genes', 'annotated_genes',
 
 output = pd.DataFrame(columns=columns_name)
 
-for filename in list(snakemake.params.path):
+for filename in ['/groups/dog/mlorthiois/macfab/benchmark_tools/Bear/4000000/results/SQANTI3/bambu/bambu.CanFam3']:#list(snakemake.params.path):
     # Classification
     classification_tsv = pd.read_csv(f"{filename}_classification.txt", sep='\t',
                                     dtype={"chrom": "str"})
     
     line = {}
     line['sample'] = filename.split("/")[-1].split('_')[0]
-    line['novel_genes'] = classification_tsv['associated_transcript'].value_counts()['novel']
-    line['annotated_genes'] = len(classification_tsv['associated_transcript']) - line['novel_genes']
+    genes = classification_tsv['associated_gene'].value_counts().to_dict()
+    line['novel_genes'] = 0
+    line['annotated_genes'] = 0
+    for gene in genes:
+        if gene.startswith("novel"):
+            line['novel_genes'] += 1
+        else:
+            line['annotated_genes'] += 1
     
     trans_char = classification_tsv['structural_category'].value_counts().to_dict()
     for char in trans_char:
