@@ -1,12 +1,9 @@
 # Your inputs here
 annotation:
   CanFam3: "/groups/dog/mlorthiois/ref_data/Canis_lupus_familiaris.CanFam3.1.101.gtf.gz"
-fastq_path: "/groups/dog/mlorthiois/manopore/guppy_4.0.14/twiny/results/guppy/fastq/twiny.fastq.gz"
+fastq_path: "/groups/dog/mlorthiois/manopore/guppy_4.0.14/CML10/results/guppy/fastq/CML10.fastq.gz"
 reference_path: "/groups/dog/mlorthiois/ref_data/Canis_lupus_familiaris.CanFam3.1.101.dna_sm.toplevel.fa.gz"
 
-# describe data here for talon
-# see https://github.com/mortazavilab/TALON#run_talon, --f option
-## reference genome build
 reference_genome_name: "CanFam3"
-sample_id: "twiny"
-sample_description: "twiny_4.0.14_DNA"
+sample_id: "CML10"
+sample_description: "CML10_4.0.14_DNA"

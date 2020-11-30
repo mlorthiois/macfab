@@ -9,7 +9,7 @@ columns_name = ['sample', 'novel_genes', 'annotated_genes',
 
 output = pd.DataFrame(columns=columns_name)
 
-for filename in ['/groups/dog/mlorthiois/macfab/benchmark_tools/Bear/4000000/results/SQANTI3/bambu/bambu.CanFam3']:#list(snakemake.params.path):
+for filename in list(snakemake.params.path):
     # Classification
     classification_tsv = pd.read_csv(f"{filename}_classification.txt", sep='\t',
                                     dtype={"chrom": "str"})

@@ -11,7 +11,8 @@ localrules: all # never launch the all and the compact rules on the cluster
 rule all:
     input:
         gffcompare_recap="results/gffcompare/Graph.recap.pdf",
-        sqanti_summary = "results/SQANTI3/SQANTI_report.pdf"
+        sqanti_summary = "results/SQANTI3/SQANTI_report.pdf",
+        rseqc = expand("results/RSeQC/{annot}.geneBodyCoverage.curves.pdf", annot=config["annotation"])
 
 
 ###############################################################################    
@@ -22,7 +23,9 @@ rule sam2bam:
         "results/minimap2/minimap.{annot}.sorted.bam"
     conda:
         "envs/samtools.yaml"
-    threads:10
+    threads:16
+    resources:
+        ram="16G"
     log: "logs/{annot}_sam2bam.log"
     shell:
         """
@@ -39,6 +42,9 @@ rule bam2bed12:
     conda:
         "envs/flair.yaml"
     log: "logs/{annot}_bam2bed12.log"
+    threads:2
+    resources:
+        ram="16G"
     shell:
         "bamToBed -bed12 -i {input} > {output} 2> {log}"
 
@@ -49,6 +55,9 @@ rule ungzip_genome_ref:
     output:
         temp("results/utilities/reference.dna.uncompressed.fa")
     log: "logs/unzip_genome_ref.log"
+    threads:1
+    resources:
+        ram="10G"
     run:
         if input[0][-2:]=="gz":
             shell("gunzip -c {input} > {output}")
@@ -62,6 +71,9 @@ rule ungzip_query_fastq:
     output:
         temp("results/utilities/Query.uncompressed.fastq")
     log: "logs/unzip_query_fastq.log"
+    threads:1
+    resources:
+        ram="16G"
     run:
         if input[0][-2:]=="gz":
             shell("gunzip -c {input} > {output}")
@@ -75,6 +87,9 @@ rule ungzip_gtf:
     output:
         temp("results/utilities/uncompress.{annot}.gtf")
     log: "logs/{annot}_unzip_gtf.log"
+    threads:1
+    resources:
+        ram="10G"
     run:
         if input[0][-2:]=="gz":
             shell("gunzip -c {input} > {output}")
@@ -84,6 +99,9 @@ rule ungzip_gtf:
 
 rule install_paftools:
     # Use custom paftools because last release doesn't work with GenBank GTF
+    threads:1
+    resources:
+        ram="2G"
     output:
         "results/utilities/paftools.js"
     log: "logs/install_paftools.log"
@@ -99,11 +117,13 @@ rule gtfToBed12:
         paftools = "results/utilities/paftools.js",
         gtf = lambda wildcards: config["annotation"][wildcards.annot]
     output:
-        temp("results/gtfToBed12/{annot}.converted.bed12")
+        temp("results/utilities/{annot}.converted.bed12")
     conda:
         "envs/minimap.yaml"
     log: "logs/{annot}_gtfToBed12.log"
     threads:1
+    resources:
+        ram="8G"
     shell:
         """
         {input.paftools} gff2bed {input.gtf} > {output} 2> {log}
@@ -114,14 +134,16 @@ rule gtfToBed12:
 rule mapping:
     input:
         fastq="results/utilities/Query.uncompressed.fastq",
-        bed="results/gtfToBed12/{annot}.converted.bed12",
+        bed="results/utilities/{annot}.converted.bed12",
         fa=config["reference_path"]
     output:
         temp("results/minimap2/minimap.{annot}.sam")
     conda:
         "envs/minimap.yaml"
     log: "logs/{annot}_mapping.log"
-    threads: workflow.cores
+    threads: 30
+    resources:
+        ram="40G"
     shell:
         """
         minimap2 -t {threads} -ax splice --MD \
@@ -132,6 +154,9 @@ rule mapping:
 ###############################################################################
 # ensure that the env is set before bambu, avoid conflicts when two bambu instances are launched at the same time
 rule install_bambu:
+    threads:1
+    resources:
+        ram="4G"
     output: touch("results/utilities/.R_config")
     conda:
         "envs/r.yaml"
@@ -155,6 +180,8 @@ rule bambu:
     conda:
         "envs/r.yaml"
     threads:1
+    resources:
+        ram="16G"
     script:
         "scripts/bambu.R"
 
@@ -168,7 +195,9 @@ rule stringtie:
         final_file="results/stringtie/stringtie.{annot}.gtf"
     conda:
         "envs/stringtie.yaml"
-    threads: workflow.cores * 0.9
+    threads: 16
+    resources:
+        ram="20G"
     log: "logs/{annot}_stringtie.log"
     shadow:
         "shallow"
@@ -189,6 +218,9 @@ rule flair_correct:
     params:
         "results/flair/flair.{annot}"
     log: "logs/{annot}_flair_correct.log"
+    threads:2
+    resources:
+        ram="16G"
     conda:
         "envs/flair.yaml"
     shell:
@@ -207,8 +239,9 @@ rule flair_collapse:
         "results/flair/flair.collapse.{annot}"
     log: 
         "logs/{annot}_flair_collapse.log"
-    threads:
-        workflow.cores * 0.75
+    threads: 16
+    resources:
+        ram="20G"
     conda:
         "envs/flair.yaml"
     shell:
@@ -220,6 +253,9 @@ rule flair_collapse:
 
 ###############################################################################
 rule install_talon:
+    threads:1
+    resources:
+        ram="10G"
     output:
         touch("results/utilities/talon_installed.txt")
     conda:
@@ -250,6 +286,9 @@ rule talon_initialize_database:
         reference_genome_name = config["reference_genome_name"],
         prefix = "results/talon/talon.{annot}",
         annotation_name = "{annot}_annot"
+    threads:2
+    resources:
+        ram="10G"
     conda:
         "envs/talon.yaml"
     log: "logs/{annot}_talon_initialize_database.log"
@@ -276,7 +315,9 @@ rule talon_label_reads:
     log: "logs/{annot}_talon_label_reads.log"
     shadow:
         "shallow"
-    threads: workflow.cores * 0.5
+    threads: 16
+    resources:
+        ram="30G"
     shell:
         """
         talon_label_reads --f {input.sam} \
@@ -287,6 +328,9 @@ rule talon_label_reads:
 
 
 rule create_talon_configfile:
+    threads:1
+    resources:
+        ram="2G"
     input:
         "results/utilities/talon_installed.txt"
     output:
@@ -318,6 +362,9 @@ rule talon:
     log: "logs/{annot}_talon.log"
     shadow:
         "shallow"
+    threads:2
+    resources:
+        ram="30G"
     shell:
         """
         talon --f {input.config} \
@@ -342,6 +389,9 @@ rule filter_transcripts:
         "shallow"
     conda:
         "envs/talon.yaml"
+    threads:1
+    resources:
+        ram="20G"
     shell:
         """
         talon_filter_transcripts \
@@ -367,6 +417,9 @@ rule talon_create_GTF:
         "shallow"
     conda:
         "envs/talon.yaml"
+    threads:1
+    resources:
+        ram="15G"
     shell:
         """
         talon_create_GTF --db {input.db} \
@@ -385,10 +438,12 @@ rule filter_gtf:
         gtf="results/{software}/{software}.{annot}.gtf",
         bam="results/minimap2/minimap.{annot}.sorted.bam"
     output:
-        final="results/{software}/{software}.{annot}.filtered.gtf",
+        final=temp("results/{software}/{software}.{annot}.filtered.gtf")
     params:
         temp = "results/{software}/{software}.{annot}.EO.gtf"
     threads:1
+    resources:
+        ram="75G"
     log: "logs/only_seen_exons_{software}.{annot}.log"
     conda:
         "envs/bedtools.yaml"
@@ -396,6 +451,7 @@ rule filter_gtf:
         """
         sed 's/*/./g' {input.gtf} | awk '$3 =="exon" && $7!="." && $5>$4' > {params.temp}
         bedtools intersect -u -s -split -a {params.temp} -b {input.bam} > {output.final} 2> {log}
+        rm {params.temp}
         """
 
 # Talon find some transcripts in 2 chr/other strand, remove the duplicate
@@ -404,6 +460,9 @@ rule correct_gtf:
         "results/{software}/{software}.{annot}.filtered.gtf"
     output:
         "results/{software}/{software}.{annot}.filtered_corrected.gtf"
+    threads:1
+    resources:
+        ram="10G"
     script:
         "scripts/correct_gtf.py"
 
@@ -416,6 +475,8 @@ rule gffcompare:
     output:
         result="results/gffcompare/{software}.{annot}.stats"
     threads:1
+    resources:
+        ram="15G"
     log: "logs/gffcompare_{software}.{annot}.log"
     conda:
         "envs/gffcompare.yaml"
@@ -438,6 +499,8 @@ rule parse_gffcompare:
         Sensitivity="results/gffcompare/Sensitivity.gffparse.tsv",
         Values="results/gffcompare/Values.gffparse.tsv"
     threads:1
+    resources:
+        ram="10G"
     log: "logs/parse_gffcompare.log"
     script:
         "scripts/gffcompare_parse.py"
@@ -451,6 +514,8 @@ rule gffcompare_report:
     output:
         "results/gffcompare/Graph.recap.pdf"
     threads:1
+    resources:
+        ram="10G"
     log: "logs/gffcompare_report.log"
     conda:
         "envs/r.yaml"
@@ -467,6 +532,9 @@ rule install_SQANTI3:
     conda:
         "envs/sqanti.yaml"
     log: "logs/install_SQANTI3.log"
+    threads:1
+    resources:
+        ram="5G"
     shell:
         """
         if ! [ -d "SQANTI3" ]; then
@@ -506,6 +574,9 @@ rule SQANTI3:
     conda:
         "envs/sqanti.yaml"
     log: "logs/SQANTI3_{software}.{annot}.log"
+    threads:2
+    resources:
+        ram="16G"
     shell:
         """
         export PYTHONPATH=$PWD/cDNA_Cupcake/sequence/
@@ -529,6 +600,8 @@ rule parse_SQANTI3:
         "envs/flair.yaml"
     log: "logs/parse_SQANTI3.log"
     threads:1
+    resources:
+        ram="8G"
     script:
         "scripts/sqanti_parse.py"
 
@@ -539,8 +612,28 @@ rule SQANTI_report:
     output:
         report = "results/SQANTI3/SQANTI_report.pdf"
     threads:1
+    resources:
+        ram="4G"
     log: "logs/SQANTI_report.log"
     conda:
         "envs/r.yaml"
     script:
         "scripts/sqanti_report.R"
+
+################################################################################
+rule RSEQC:
+    input:
+        bam = "results/minimap2/minimap.{annot}.sorted.bam",
+        bed12 = "results/utilities/{annot}.converted.bed12"
+    output:
+        "results/RSeQC/{annot}.geneBodyCoverage.curves.pdf"
+    threads:1
+    resources:
+        ram="8G"
+    conda:
+        "envs/rseqc.yaml"
+    shell:
+        """
+        geneBody_coverage.py -i {input.bam} -r {input.bed12} -o results/RSeQC/{wildcards.annot}
+        """
+
