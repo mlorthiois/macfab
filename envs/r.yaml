@@ -1,7 +1,9 @@
 name: R
+channels:
+  - bioconda
 dependencies:
   - r
-  - r-biocmanager
-  - r-devtools
+  - bioconductor-bambu=1.0.2
+  - bioconductor-bsgenome
   - r-tidyverse
   - r-reshape2

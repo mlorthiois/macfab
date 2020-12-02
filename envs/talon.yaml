@@ -1,7 +1,5 @@
 name: talon
 channels:
   - bioconda
-  - conda-forge
 dependencies:
-  - pybedtools=0.8
-  - biopython=1.78
+  - talon=v5.0

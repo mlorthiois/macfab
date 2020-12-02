@@ -1,5 +1,5 @@
 #!/bin/bash
-    	
+
 #SBATCH --job-name=macfab
 #SBATCH --output=slurm_macfab.out
 

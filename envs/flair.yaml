@@ -28,7 +28,7 @@ dependencies:
   - bioconductor-stager
   - matplotlib
   - seaborn
-  - flair
+  - flair=1.5
   - pip
   - pip:
       - kerneltree

@@ -12,15 +12,33 @@ rule all:
     input:
         gffcompare_recap="results/gffcompare/Graph.recap.pdf",
         sqanti_summary = "results/SQANTI3/SQANTI_report.pdf",
-        rseqc = expand("results/RSeQC/{annot}.geneBodyCoverage.curves.pdf", annot=config["annotation"])
+        rseqc = expand("results/RSeQC/{annot}.geneBodyCoverage.curves.pdf", annot=config["annotation"]),
+        bai = expand("results/minimap2/minimap.{annot}.sorted.bam.bai", annot=config["annotation"])
 
 
-###############################################################################    
+###############################################################################
 rule sam2bam:
     input:
         "results/minimap2/minimap.{annot}.sam"
     output:
         "results/minimap2/minimap.{annot}.sorted.bam"
+    conda:
+        "envs/samtools.yaml"
+    threads:30
+    resources:
+        ram="16G"
+    log: "logs/{annot}_sam2bam.log"
+    shell:
+        """
+        samtools view -b -@ {threads} {input} | samtools sort -o {output}
+        """
+
+
+rule bam2bai:
+    input:
+        "results/minimap2/minimap.{annot}.sorted.bam"
+    output:
+        "results/minimap2/minimap.{annot}.sorted.bam.bai"
     conda:
         "envs/samtools.yaml"
     threads:16
@@ -29,8 +47,7 @@ rule sam2bam:
     log: "logs/{annot}_sam2bam.log"
     shell:
         """
-        samtools view -b -@ {threads} {input} | samtools sort -o {output}
-        samtools index -@ {threads} {output}
+        samtools index -@ {threads} {input}
         """
 
 
@@ -152,26 +169,11 @@ rule mapping:
 
 
 ###############################################################################
-# ensure that the env is set before bambu, avoid conflicts when two bambu instances are launched at the same time
-rule install_bambu:
-    threads:1
-    resources:
-        ram="4G"
-    output: touch("results/utilities/.R_config")
-    conda:
-        "envs/r.yaml"
-    log: "logs/install_bambu.log"
-    script:
-        "scripts/install_bambu.R"
-
-
-# asks for .R_config created by the R_config rule
 rule bambu:
     input:
         gtf="results/utilities/uncompress.{annot}.gtf",
         bam="results/minimap2/minimap.{annot}.sorted.bam",
-        fa="results/utilities/reference.dna.uncompressed.fa",
-        isConfig="results/utilities/.R_config"
+        fa="results/utilities/reference.dna.uncompressed.fa"
     output:
         bambu_gtf="results/bambu/bambu.{annot}.gtf"
     shadow: # snakemake symlinks the data, runs the soft inside the shadow dir then move the output out of it and delete it
@@ -179,9 +181,9 @@ rule bambu:
     log: "logs/{annot}_bambu.log"
     conda:
         "envs/r.yaml"
-    threads:1
+    threads:2
     resources:
-        ram="16G"
+        ram="24G"
     script:
         "scripts/bambu.R"
 
@@ -237,7 +239,7 @@ rule flair_collapse:
         "results/flair/flair.{annot}.gtf"
     params:
         "results/flair/flair.collapse.{annot}"
-    log: 
+    log:
         "logs/{annot}_flair_collapse.log"
     threads: 16
     resources:
@@ -249,34 +251,11 @@ rule flair_collapse:
         flair.py collapse -t {threads} -g {input.fa} -r {input.reads} -q {input.query} -o {params} -f {input.ref_gtf}
         mv {params}.isoforms.gtf {output} 2> {log}
         """
-        
+
 
 ###############################################################################
-rule install_talon:
-    threads:1
-    resources:
-        ram="10G"
-    output:
-        touch("results/utilities/talon_installed.txt")
-    conda:
-        "envs/talon.yaml"
-    log: "logs/install_talon.log"
-    shell:
-        """
-        if ! [ "$(command -v talon)" ]; then
-            curl -L https://github.com/mortazavilab/TALON/archive/v5.0.zip -o ./results/utilities/TALON-5.0.zip
-            cd results/utilities/
-            unzip -q TALON-5.0.zip && rm TALON-5.0.zip
-            cd TALON-5.0
-            pip install .
-            cd .. && rm -rf TALON-5.0
-        fi 2> {log}
-        """
-
-
 rule talon_initialize_database:
     input:
-        bin="results/utilities/talon_installed.txt",
         gtf="results/utilities/uncompress.{annot}.gtf"
     output:
         db="results/talon/talon.{annot}.db"
@@ -303,7 +282,6 @@ rule talon_initialize_database:
 
 rule talon_label_reads:
     input:
-        bin="results/utilities/talon_installed.txt",
         sam="results/minimap2/minimap.{annot}.sam",
         fa="results/utilities/reference.dna.uncompressed.fa"
     output:
@@ -332,7 +310,6 @@ rule create_talon_configfile:
     resources:
         ram="2G"
     input:
-        "results/utilities/talon_installed.txt"
     output:
         "results/talon/talon.{annot}.config.csv"
     params:
@@ -344,7 +321,7 @@ rule create_talon_configfile:
         "shallow"
     log: "logs/{annot}_create_talon_configfile.log"
     shell:
-       "echo {params.id},{params.description},{params.ngs},{params.sam} > {output} 2> {log}" 
+       "echo {params.id},{params.description},{params.ngs},{params.sam} > {output} 2> {log}"
 
 
 rule talon:
@@ -362,14 +339,15 @@ rule talon:
     log: "logs/{annot}_talon.log"
     shadow:
         "shallow"
-    threads:2
+    threads:30
     resources:
-        ram="30G"
+        ram="50G"
     shell:
         """
         talon --f {input.config} \
             --db {input.db} \
             --build {params.build} \
+            --threads {threads} \
             --o {params.prefix} 2> {log}
         """
 
@@ -403,7 +381,6 @@ rule filter_transcripts:
 
 rule talon_create_GTF:
     input:
-        bin="results/utilities/talon_installed.txt",
         db="results/talon/talon.{annot}.db",
         csv="results/talon/talon.{annot}_filtered_transcripts.csv"
     output:
@@ -432,7 +409,7 @@ rule talon_create_GTF:
 
 
 ###############################################################################
-# intersect gtf with bam to keep only expressed genes and not those from the annotation        
+# intersect gtf with bam to keep only expressed genes and not those from the annotation
 rule filter_gtf:
     input:
         gtf="results/{software}/{software}.{annot}.gtf",
@@ -467,7 +444,7 @@ rule correct_gtf:
         "scripts/correct_gtf.py"
 
 ###############################################################################
-# compare annotation to ref      
+# compare annotation to ref
 rule gffcompare:
     input:
         test="results/{software}/{software}.{annot}.filtered_corrected.gtf",
@@ -490,10 +467,10 @@ rule gffcompare:
          """
 
 
-# format values to use it as R input      
+# format values to use it as R input
 rule parse_gffcompare:
     input:
-        expand("results/gffcompare/{software}.{annot}.stats", 
+        expand("results/gffcompare/{software}.{annot}.stats",
                 software=SOFTWARE, annot=config["annotation"])
     output:
         Sensitivity="results/gffcompare/Sensitivity.gffparse.tsv",
@@ -539,13 +516,13 @@ rule install_SQANTI3:
         """
         if ! [ -d "SQANTI3" ]; then
             echo "Download SQANTI3"
-            git clone https://github.com/ConesaLab/SQANTI3.git
+            git clone --depth 1 --branch v1.3 https://github.com/ConesaLab/SQANTI3.git
         fi
         if [ ! -f "./SQANTI3/utilities/gtfToGenePred" ]; then
             echo "Download gtfToGenePred"
             wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/gtfToGenePred -P ./SQANTI3/utilities/ -q
             echo "Add +x right to gtfToGenePred"
-            chmod +x ./SQANTI3/utilities/gtfToGenePred 
+            chmod +x ./SQANTI3/utilities/gtfToGenePred
         fi
         if [ ! -d "./cDNA_Cupcake" ]; then
             echo "Download cDNA_Cupcake"
@@ -588,9 +565,9 @@ rule SQANTI3:
 
 rule parse_SQANTI3:
     input:
-        classification = expand("results/SQANTI3/{software}/{software}.{annot}_classification.txt", 
+        classification = expand("results/SQANTI3/{software}/{software}.{annot}_classification.txt",
                 software=SOFTWARE, annot=config["annotation"]),
-        junctions = expand("results/SQANTI3/{software}/{software}.{annot}_junctions.txt", 
+        junctions = expand("results/SQANTI3/{software}/{software}.{annot}_junctions.txt",
                 software=SOFTWARE, annot=config["annotation"])
     output:
         summary = "results/SQANTI3/summary.tsv"

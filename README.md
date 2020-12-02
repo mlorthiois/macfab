@@ -53,3 +53,16 @@ At the end of the pipeline, all your results will be located in the `results` su
 - You visualize via a [DAG](https://en.wikipedia.org/wiki/Directed_acyclic_graph) using `snakemake --dag -n ` and then [dedicated website](https://dreampuf.github.io/GraphvizOnline) to visualize it.
 
 ![dag](data/dag.svg)
+
+## Versions
+
+```
+minimap2   : 2.17
+bambu      : 1.0.2
+TALON      : 5.0
+flair      : 1.5
+stringtie  : 2.1.4
+gffcompare : 0.11.2
+SQANTI3    : 1.3.0
+RSeQC      : 4.0.0
+```
