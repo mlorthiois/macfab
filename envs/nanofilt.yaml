@@ -1,0 +1,5 @@
+name: Nanofilt
+channels:
+  - bioconda
+dependencies:
+  - nanofilt=2.7

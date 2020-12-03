@@ -82,20 +82,25 @@ rule ungzip_genome_ref:
             shell("cp {input} {output}")
 
 
-rule ungzip_query_fastq:
+rule Nanofilt:
     input:
         config["fastq_path"]
     output:
-        temp("results/utilities/Query.uncompressed.fastq")
+        temp("results/utilities/hq_reads.fastq")
     log: "logs/unzip_query_fastq.log"
-    threads:1
+    conda:
+        "envs/nanofilt.yaml"
+    threads:2
     resources:
         ram="16G"
-    run:
-        if input[0][-2:]=="gz":
-            shell("gunzip -c {input} > {output}")
-        else:
-            shell("cp {input} {output}")
+    shell:
+        """
+        if [[ {input} == *.gz ]]; then
+            gunzip -c {input} | NanoFilt -q {config[min_phred_score]} -s {config[summary_file_path]} > {output}
+        else
+            NanoFilt -q {config[min_phred_score]} -s {config[summary_file_path]} {input} > {output}
+        fi
+        """
 
 
 rule ungzip_gtf:
@@ -150,7 +155,7 @@ rule gtfToBed12:
 ###############################################################################
 rule mapping:
     input:
-        fastq="results/utilities/Query.uncompressed.fastq",
+        fastq="results/utilities/hq_reads.fastq",
         bed="results/utilities/{annot}.converted.bed12",
         fa=config["reference_path"]
     output:
@@ -232,7 +237,7 @@ rule flair_correct:
 rule flair_collapse:
     input:
         fa="results/utilities/reference.dna.uncompressed.fa",
-        reads="results/utilities/Query.uncompressed.fastq",
+        reads="results/utilities/hq_reads.fastq",
         query="results/flair/flair.{annot}_all_corrected.bed",
         ref_gtf = "results/utilities/uncompress.{annot}.gtf"
     output:

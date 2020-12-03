@@ -1,9 +1,11 @@
 # Your inputs here
 annotation:
   CanFam3: "/groups/dog/mlorthiois/ref_data/Canis_lupus_familiaris.CanFam3.1.101.gtf.gz"
-fastq_path: "/groups/dog/mlorthiois/manopore/guppy_4.0.14/CML10/results/guppy/fastq/CML10.fastq.gz"
+fastq_path: "/groups/dog/mlorthiois/manopore/guppy_4.0.14/Bear/results/guppy/fastq/Bear.fastq.gz"
+summary_file_path: "/groups/dog/mlorthiois/manopore/guppy_4.0.14/Bear/results/guppy/basecalling/sequencing_summary.txt"
 reference_path: "/groups/dog/mlorthiois/ref_data/Canis_lupus_familiaris.CanFam3.1.101.dna_sm.toplevel.fa.gz"
 
 reference_genome_name: "CanFam3"
 sample_id: "CML10"
 sample_description: "CML10_4.0.14_DNA"
+min_phred_score: 7
