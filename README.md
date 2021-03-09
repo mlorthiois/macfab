@@ -66,3 +66,8 @@ gffcompare : 0.11.2
 SQANTI3    : 1.3.0
 RSeQC      : 4.0.0
 ```
+
+### Pourquoi Talon a 100% de précision avec gffcompare?
+- 100% de précision = Rien de plus dans l'échantillon quand dans l'annotation, donc rien de "nouveau"
+- SQANTI3 confirme que les isoformes sont soit dans la référence, soit NIC = nouvelle isoforme à partir de sites d'épissages connus.
+- gffcompare montre 100% de précision sur les exons mais pas sur le transcript level. Hypothèse : les seules nouvelles isoformes sont constituées de nouveaux arrangement d'exons connus.
